@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "expo.vscode-expo-tools",
+    "EddieDover.gdscript-formatter-linter",
+    "geequlim.godot-tools",
+    "usernamehw.errorlens",
+    "datakurre.devenv"
+  ]
+}
