@@ -1,0 +1,11 @@
+pre-commit:
+  jobs:
+    - name: lint
+      root: web/
+      run: pnpm lint --staged --no-errors-on-unmatched
+
+pre-push:
+  jobs:
+    - name: typecheck
+      root: web/
+      run: pnpm typecheck
