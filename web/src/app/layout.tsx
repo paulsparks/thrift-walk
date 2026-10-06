@@ -21,8 +21,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <html
             lang="en"
             className={`${roboto.variable} ${robotoMono.variable} h-full antialiased`}
+            data-theme="night"
         >
-            <body className="min-h-full flex flex-col">{children}</body>
+            <body className="min-h-full flex flex-col p-12">{children}</body>
         </html>
     );
 }

@@ -17,10 +17,11 @@
     },
     "devDependencies": {
         "@biomejs/biome": "2.5.13",
-        "@tailwindcss/postcss": "^4",
+        "@tailwindcss/postcss": "^4.3.3",
         "@types/node": "^20",
         "@types/react": "^19",
         "@types/react-dom": "^19",
+        "daisyui": "^5.7.47",
         "tailwindcss": "^4",
         "typescript": "^7"
     },
