@@ -1,11 +1,12 @@
 {
-  "recommendations": [
-    "EddieDover.gdscript-formatter-linter",
-    "geequlim.godot-tools",
-    "usernamehw.errorlens",
-    "datakurre.devenv",
-    "TypeScriptTeam.native-preview",
-    "biomejs.biome",
-    "datakurre.devenv"
-  ]
+    "recommendations": [
+        "EddieDover.gdscript-formatter-linter",
+        "geequlim.godot-tools",
+        "usernamehw.errorlens",
+        "datakurre.devenv",
+        "TypeScriptTeam.native-preview",
+        "biomejs.biome",
+        "datakurre.devenv",
+        "zenstack.zenstack-v3"
+    ]
 }
