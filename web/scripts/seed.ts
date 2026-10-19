@@ -1,18 +1,22 @@
 import { db } from "@/lib/db";
 
 async function main() {
-    const users = await db.user.createManyAndReturn({
-        data: [
-            { name: "Alice Johnson" },
-            { name: "Bob Martinez" },
-            { name: "Carol Nguyen" },
-        ],
-    });
+    // Seed Data Example:
 
-    console.log(`Seeded ${users.length} users:`);
-    for (const user of users) {
-        console.log(`  ${user.id}  ${user.name}`);
-    }
+    // const users = await db.user.createManyAndReturn({
+    //     data: [
+    //         { name: "Alice Johnson" },
+    //         { name: "Bob Martinez" },
+    //         { name: "Carol Nguyen" },
+    //     ],
+    // });
+
+    // console.log(`Seeded ${users.length} users:`);
+    // for (const user of users) {
+    //     console.log(`  ${user.id}  ${user.name}`);
+    // }
+
+    console.log("Nothing to seed");
 }
 
 main()

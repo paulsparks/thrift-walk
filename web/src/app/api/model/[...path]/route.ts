@@ -1,15 +1,28 @@
+import type { AuthType } from "@zenstackhq/orm";
 import { RPCApiHandler } from "@zenstackhq/server/api";
 import { NextRequestHandler } from "@zenstackhq/server/next";
 import type { NextRequest } from "next/server";
 
-import { db } from "@/lib/db";
-import { schema } from "~/zenstack/schema";
+import { auth } from "@/lib/auth";
+import { dbWithAuth } from "@/lib/db";
+import { type SchemaType, schema } from "~/zenstack/schema";
 
 const handler = NextRequestHandler({
     apiHandler: new RPCApiHandler({ schema }),
-    // getSessionUser extracts the current session user from the request, its
-    // implementation depends on your auth solution
-    getClient: (_req: NextRequest) => db, //db.$setAuth(getSessionUser(req)),
+    getClient: async (req: NextRequest) => {
+        const session = await auth.api.getSession({ headers: req.headers });
+
+        if (session) {
+            const userContext: AuthType<SchemaType> = {
+                ...session.user,
+                sessions: [session.session],
+            };
+
+            return dbWithAuth.$setAuth(userContext);
+        } else {
+            return dbWithAuth;
+        }
+    },
     useAppDir: true,
 });
 

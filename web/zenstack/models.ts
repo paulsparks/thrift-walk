@@ -7,5 +7,10 @@
 
 import type { ModelResult as $ModelResult } from "@zenstackhq/orm";
 
-import type { SchemaType as $Schema } from "./schema";
+import { type SchemaType as $Schema, schema as $schema } from "./schema";
 export type User = $ModelResult<$Schema, "User">;
+export type Session = $ModelResult<$Schema, "Session">;
+export type Account = $ModelResult<$Schema, "Account">;
+export type Verification = $ModelResult<$Schema, "Verification">;
+export const Role = $schema.enums.Role.values;
+export type Role = (typeof Role)[keyof typeof Role];
