@@ -11,5 +11,10 @@
         "editor.defaultFormatter": "zenstack.zenstack-v3"
     },
     "editor.defaultFormatter": "biomejs.biome",
-    "editor.tabSize": 4
+    "editor.tabSize": 4,
+    "godotTools.editorPath.godot4": "godot",
+    "godotTools.lsp.headless": true,
+    "[gdscript]": {
+        "editor.defaultFormatter": "EddieDover.gdscript-formatter-linter"
+    }
 }
