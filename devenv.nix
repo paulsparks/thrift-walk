@@ -10,6 +10,9 @@
 
   packages = with pkgs; [
     git
+    # Used by the Godot Tools VS Code extension to run an LSP in WSL.
+    # Keep this as Godot 4 so its version matches game/project.godot.
+    godot_4
     gdtoolkit_4
     secretspec
     prisma-engines_6
