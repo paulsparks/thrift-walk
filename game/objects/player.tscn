@@ -10,30 +10,24 @@ height = 0.6
 height = 0.8
 radius = 0.3
 
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_2wkjk"]
-radius = 0.29
-height = 1.6
-
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_rgylw"]
 radius = 0.3
 height = 1.4
 
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_2cf6m"]
+radius = 0.3
+height = 2.2
+
 [node name="Player" type="CharacterBody3D" unique_id=424197166]
 script = ExtResource("1_u1fqc")
 
-[node name="TopHalf1" type="CollisionShape3D" parent="." unique_id=176436010]
+[node name="UpperCollision" type="CollisionShape3D" parent="." unique_id=176436010]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
 shape = SubResource("CapsuleShape3D_3nt6g")
 
-[node name="TopHalf2" type="CollisionShape3D" parent="." unique_id=861983139]
+[node name="TorsoCollision" type="CollisionShape3D" parent="." unique_id=861983139]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.297294, 0)
 shape = SubResource("CylinderShape3D_722js")
-
-[node name="TopHalfArea" type="Area3D" parent="." unique_id=2094272422]
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="TopHalfArea" unique_id=1083506874]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
-shape = SubResource("CapsuleShape3D_2wkjk")
 
 [node name="BottomHalf" type="CollisionShape3D" parent="." unique_id=673741705]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
@@ -58,5 +52,6 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(1, 1, 1, 0.705882)
 
-[connection signal="body_entered" from="TopHalfArea" to="." method="_on_top_half_area_body_entered"]
-[connection signal="body_exited" from="TopHalfArea" to="." method="_on_top_half_area_body_exited"]
+[node name="Playermodel" type="MeshInstance3D" parent="." unique_id=1989190144]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.09999998, 0)
+mesh = SubResource("CapsuleMesh_2cf6m")
