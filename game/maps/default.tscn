@@ -13,6 +13,8 @@ size = Vector3(50, 0.5, 50)
 albedo_texture = ExtResource("2_t67o2")
 uv1_scale = Vector3(20, 20, 20)
 
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_t67o2"]
+
 [node name="Default" type="Node3D" unique_id=1606817787]
 
 [node name="Player" parent="." unique_id=126467029 instance=ExtResource("1_0n5sb")]
@@ -31,3 +33,6 @@ surface_material_override/0 = SubResource("StandardMaterial3D_0n5sb")
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1104509045]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 5, 0)
 shadow_enabled = true
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=194160851]
+replication_config = SubResource("SceneReplicationConfig_t67o2")

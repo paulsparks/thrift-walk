@@ -6,13 +6,15 @@ const SPRINT_SPEED: float = 7.5
 const CROUCH_SPEED: float = 2.5
 const JUMP_VELOCITY: float = 7.0
 const SENSITIVITY: float = 0.003
-const BOB_FREQ: float = 2.5
-const BOB_AMP: float = 0.05
+const BOB_FREQ: float = 2.2
+const BOB_AMP: float = 0.04
 const GRAVITY: float = 25.0
 const TERMINAL_VELOCITY: float = 35.0
 const REACH_DISTANCE: float = 3
 const ITEM_SCROLL_ROTATE_SPEED: float = 0.2
 const BOB_FADE_SPEED: float = 8.0  # higher = returns to origin faster
+# NOTE: Disabling crouch for now because browsers close the tab on Ctrl+W
+const CROUCH_DISABLED: bool = true
 
 var speed: float = WALK_SPEED
 var t_bob: float = 0.0
@@ -60,7 +62,9 @@ func _physics_process(delta: float) -> void:
 	var direction: Vector3 = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 
 	# Pick the speed: crouch beats sprint, and sprint only works while moving forwards
-	var is_crouching: bool = Input.is_action_pressed("crouch") or not can_stand
+	var is_crouching: bool = (
+		(!CROUCH_DISABLED && Input.is_action_pressed("crouch")) or not can_stand
+	)
 	var is_sprinting: bool = (
 		Input.is_action_pressed("sprint") and not is_crouching and input_dir.y < 0.0
 	)
@@ -83,12 +87,9 @@ func _physics_process(delta: float) -> void:
 	t_bob += delta * velocity.length() * float(is_on_floor())
 	bob_weight = lerpf(bob_weight, 1.0 if is_walking else 0.0, 1.0 - exp(-BOB_FADE_SPEED * delta))
 	camera.transform.origin = (
-		_headbob(t_bob) * bob_weight
-		+ (
-			Vector3(0, 1, 0)
-			if (can_stand and not Input.is_action_pressed("crouch"))
-			else Vector3(0, 0.2, 0)
-		)
+		_headbob(t_bob) * bob_weight + (Vector3(0, 1, 0))
+		if (can_stand and not (!CROUCH_DISABLED && Input.is_action_pressed("crouch")))
+		else Vector3(0, 0.2, 0)
 	)
 
 	move_and_slide()
@@ -98,6 +99,20 @@ func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("crouch"):
 		top_half_1.disabled = true
 		top_half_2.disabled = true
+
+	# Grab the mouse as soon as the player clicks inside the game screen
+	if event is InputEventMouseButton:
+		var mouse_event: InputEventMouseButton = event
+		if mouse_event.pressed:
+			if mouse_event.button_index == MOUSE_BUTTON_LEFT:
+				Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+	# Release the mouse if they hit the Escape key (browser also handles this)
+	if event is InputEventKey:
+		var key_event: InputEventKey = event
+		if key_event.pressed:
+			if key_event.keycode == KEY_ESCAPE:
+				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
 func _headbob(time: float) -> Vector3:
