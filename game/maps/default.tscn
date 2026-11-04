@@ -1,6 +1,5 @@
 [gd_scene format=3 uid="uid://bxrbp8ga2qjpb"]
 
-[ext_resource type="PackedScene" uid="uid://crqba7aw5sw3h" path="res://objects/player.tscn" id="1_0n5sb"]
 [ext_resource type="Texture2D" uid="uid://c2jxch7yhm4li" path="res://textures/ground.JPG" id="2_t67o2"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_i8p4n"]
@@ -14,9 +13,6 @@ albedo_texture = ExtResource("2_t67o2")
 uv1_scale = Vector3(20, 20, 20)
 
 [node name="Default" type="Node3D" unique_id=1606817787]
-
-[node name="Player" parent="." unique_id=126467029 instance=ExtResource("1_0n5sb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 
 [node name="Ground" type="StaticBody3D" parent="." unique_id=413578364]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25, 0)
