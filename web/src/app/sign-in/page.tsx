@@ -13,9 +13,9 @@ export default async function SignInPage({
 
     return (
         <main className="flex flex-1 items-center justify-center">
-            <div className="card bg-base-100 w-full max-w-sm shadow-md">
+            <div className="card bg-base-100 border-base-content w-full max-w-sm border-2 shadow-[4px_4px_0_var(--color-base-content)]">
                 <div className="card-body gap-4">
-                    <h1 className="card-title text-2xl">Sign in</h1>
+                    <h1 className="card-title text-3xl">Sign in</h1>
                     <SignInForm redirectTo={redirectTo} />
                     <p className="text-sm">
                         Don&apos;t have an account?{" "}

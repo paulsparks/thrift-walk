@@ -53,7 +53,7 @@ export function SignUpForm({ redirectTo }: { redirectTo: string }) {
                     name="name"
                     placeholder="Full name"
                     autoComplete="name"
-                    className="input w-full"
+                    className="input input-neutral w-full"
                     required
                 />
             </label>
@@ -64,7 +64,7 @@ export function SignUpForm({ redirectTo }: { redirectTo: string }) {
                     name="email"
                     placeholder="your@email.com"
                     autoComplete="email"
-                    className="input w-full"
+                    className="input input-neutral w-full"
                     required
                 />
             </label>
@@ -76,7 +76,7 @@ export function SignUpForm({ redirectTo }: { redirectTo: string }) {
                     placeholder="At least 8 characters"
                     autoComplete="new-password"
                     minLength={8}
-                    className="input w-full"
+                    className="input input-neutral w-full"
                     required
                 />
             </label>
@@ -88,13 +88,13 @@ export function SignUpForm({ redirectTo }: { redirectTo: string }) {
                     placeholder="Confirm password"
                     autoComplete="new-password"
                     minLength={8}
-                    className="input w-full"
+                    className="input input-neutral w-full"
                     required
                 />
             </label>
 
             {error && (
-                <div role="alert" className="alert alert-error alert-soft">
+                <div role="alert" className="alert alert-error">
                     <span>{error}</span>
                 </div>
             )}
