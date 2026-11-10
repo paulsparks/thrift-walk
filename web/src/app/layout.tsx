@@ -1,22 +1,11 @@
 import type { Metadata } from "next";
-import {
-    Bricolage_Grotesque,
-    Instrument_Sans,
-    Roboto_Mono,
-} from "next/font/google";
+import { Roboto, Roboto_Mono } from "next/font/google";
 
 import { Providers } from "@/components/Providers";
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
 
-const bricolage = Bricolage_Grotesque({
-    variable: "--font-bricolage",
-    subsets: ["latin"],
-});
-
-const instrument = Instrument_Sans({
-    variable: "--font-instrument",
+const roboto = Roboto({
+    variable: "--font-roboto",
     subsets: ["latin"],
 });
 
@@ -33,14 +22,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     return (
         <html
             lang="en"
-            className={`${bricolage.variable} ${instrument.variable} ${robotoMono.variable} h-full antialiased`}
+            className={`${roboto.variable} ${robotoMono.variable} h-full antialiased`}
+            data-theme="night"
         >
-            <body className="min-h-full bg-base-100 text-base-content font-sans text-lg">
-                <Providers>
-                    <SiteHeader />
-                    {children}
-                    <SiteFooter />
-                </Providers>
+            <body className="min-h-full flex flex-col p-12">
+                <Providers>{children}</Providers>
             </body>
         </html>
     );

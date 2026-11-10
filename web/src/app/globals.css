@@ -38,6 +38,40 @@
     --noise: 0;
 }
 
+@plugin "daisyui/theme" {
+    name: "thriftwalk-dark";
+    prefersdark: true;
+    color-scheme: dark;
+    --color-base-100: #1e222a;
+    --color-base-200: #262b35;
+    --color-base-300: #323846;
+    --color-base-content: #f4f1de;
+    --color-primary: #f4f1de;
+    --color-primary-content: #1e222a;
+    --color-secondary: #00a896;
+    --color-secondary-content: #1e222a;
+    --color-accent: #ff4b4b;
+    --color-accent-content: #1e222a;
+    --color-neutral: #f4f1de;
+    --color-neutral-content: #1e222a;
+    --color-info: #457b9d;
+    --color-info-content: #f4f1de;
+    --color-success: #00a896;
+    --color-success-content: #1e222a;
+    --color-warning: #e9b44c;
+    --color-warning-content: #1e222a;
+    --color-error: #ff4b4b;
+    --color-error-content: #1e222a;
+    --radius-selector: 1rem;
+    --radius-field: 2rem;
+    --radius-box: 1.25rem;
+    --size-selector: 0.25rem;
+    --size-field: 0.25rem;
+    --border: 2px;
+    --depth: 0;
+    --noise: 0;
+}
+
 @theme {
     --font-display: "Bricolage Grotesque", "Arial Black", Impact, sans-serif;
     --font-sans:
