@@ -46,7 +46,7 @@ export function SignInForm({ redirectTo }: { redirectTo: string }) {
                     name="email"
                     placeholder="your@email.com"
                     autoComplete="email"
-                    className="input w-full"
+                    className="input input-neutral w-full"
                     required
                 />
             </label>
@@ -57,13 +57,13 @@ export function SignInForm({ redirectTo }: { redirectTo: string }) {
                     name="password"
                     placeholder="Password"
                     autoComplete="current-password"
-                    className="input w-full"
+                    className="input input-neutral w-full"
                     required
                 />
             </label>
 
             {error && (
-                <div role="alert" className="alert alert-error alert-soft">
+                <div role="alert" className="alert alert-error">
                     <span>{error}</span>
                 </div>
             )}
