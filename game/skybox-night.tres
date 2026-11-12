@@ -1,0 +1,51 @@
+[gd_resource type="VisualShader" format=3 uid="uid://dnj7i0yl0wuds"]
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_4w1qr"]
+input_name = "sky_coords"
+
+[sub_resource type="VisualShaderNodeTexture" id="VisualShaderNodeTexture_g52r6"]
+source = 5
+
+[sub_resource type="VisualShaderNodeTexture2DParameter" id="VisualShaderNodeTexture2DParameter_lnp6j"]
+parameter_name = "tex"
+
+[sub_resource type="VisualShaderNodeVectorDecompose" id="VisualShaderNodeVectorDecompose_4w1qr"]
+default_input_values = [0, Vector2(0, 0)]
+op_type = 0
+
+[sub_resource type="VisualShaderNodeVectorCompose" id="VisualShaderNodeVectorCompose_g52r6"]
+op_type = 0
+
+[sub_resource type="VisualShaderNodeFloatOp" id="VisualShaderNodeFloatOp_lnp6j"]
+
+[sub_resource type="VisualShaderNodeFloatOp" id="VisualShaderNodeFloatOp_pcott"]
+default_input_values = [0, 0.0, 1, 0.002]
+operator = 2
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_2cs77"]
+input_name = "time"
+
+[resource]
+mode = 3
+flags/use_half_res_pass = false
+flags/use_quarter_res_pass = false
+flags/disable_fog = false
+flags/use_debanding = false
+nodes/sky/0/position = Vector2(480, 220)
+nodes/sky/2/node = SubResource("VisualShaderNodeInput_4w1qr")
+nodes/sky/2/position = Vector2(-900, 220)
+nodes/sky/3/node = SubResource("VisualShaderNodeTexture_g52r6")
+nodes/sky/3/position = Vector2(280, 540)
+nodes/sky/4/node = SubResource("VisualShaderNodeTexture2DParameter_lnp6j")
+nodes/sky/4/position = Vector2(-200, 740)
+nodes/sky/5/node = SubResource("VisualShaderNodeVectorDecompose_4w1qr")
+nodes/sky/5/position = Vector2(-660, 500)
+nodes/sky/6/node = SubResource("VisualShaderNodeVectorCompose_g52r6")
+nodes/sky/6/position = Vector2(0, 360)
+nodes/sky/7/node = SubResource("VisualShaderNodeFloatOp_lnp6j")
+nodes/sky/7/position = Vector2(-160, 140)
+nodes/sky/8/node = SubResource("VisualShaderNodeFloatOp_pcott")
+nodes/sky/8/position = Vector2(-220, -80)
+nodes/sky/9/node = SubResource("VisualShaderNodeInput_2cs77")
+nodes/sky/9/position = Vector2(-880, -20)
+nodes/sky/connections = PackedInt32Array(3, 0, 0, 0, 4, 0, 3, 2, 6, 0, 3, 0, 5, 1, 6, 1, 2, 0, 5, 0, 7, 0, 6, 0, 5, 0, 7, 0, 8, 0, 7, 1, 9, 0, 8, 0)

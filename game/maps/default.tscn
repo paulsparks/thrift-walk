@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://bxrbp8ga2qjpb"]
 
 [ext_resource type="Texture2D" uid="uid://c2jxch7yhm4li" path="res://textures/ground.JPG" id="2_t67o2"]
+[ext_resource type="Shader" uid="uid://dnj7i0yl0wuds" path="res://skybox-night.tres" id="2_yxxav"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_i8p4n"]
 size = Vector3(50, 0.5, 50)
@@ -11,6 +12,22 @@ size = Vector3(50, 0.5, 50)
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0n5sb"]
 albedo_texture = ExtResource("2_t67o2")
 uv1_scale = Vector3(20, 20, 20)
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_t67o2"]
+load_path = "res://.godot/imported/skybox-night.png-aaeba350eab799293049cfdd3101348d.s3tc.ctex"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_g52r6"]
+shader = ExtResource("2_yxxav")
+shader_parameter/tex = SubResource("CompressedTexture2D_t67o2")
+
+[sub_resource type="Sky" id="Sky_w6vpw"]
+resource_local_to_scene = true
+sky_material = SubResource("ShaderMaterial_g52r6")
+
+[sub_resource type="Environment" id="Environment_h8qry"]
+background_mode = 2
+background_energy_multiplier = 1.01
+sky = SubResource("Sky_w6vpw")
 
 [node name="Default" type="Node3D" unique_id=1606817787]
 
@@ -27,3 +44,6 @@ surface_material_override/0 = SubResource("StandardMaterial3D_0n5sb")
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1104509045]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 5, 0)
 shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=14259692]
+environment = SubResource("Environment_h8qry")
