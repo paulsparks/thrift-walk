@@ -1,7 +1,5 @@
 "use client";
 
-// SAVE AS: web/src/components/store-browser.tsx  (STORE ITEM GRID)
-
 import { useMemo, useState } from "react";
 
 type Item = {

@@ -6,9 +6,6 @@ import {
 } from "next/font/google";
 
 import { Providers } from "@/components/Providers";
-import { SiteChrome } from "@/components/site-chrome";
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
 
 const bricolage = Bricolage_Grotesque({
@@ -37,11 +34,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             className={`${bricolage.variable} ${instrument.variable} ${robotoMono.variable} h-full antialiased`}
         >
             <body className="min-h-full bg-base-100 text-base-content font-sans text-lg">
-                <Providers>
-                    <SiteChrome header={<SiteHeader />} footer={<SiteFooter />}>
-                        {children}
-                    </SiteChrome>
-                </Providers>
+                <Providers>{children}</Providers>
             </body>
         </html>
     );

@@ -1,7 +1,5 @@
 "use client";
 
-// SAVE AS: web/src/components/site-header.tsx  (HEADER)
-
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
