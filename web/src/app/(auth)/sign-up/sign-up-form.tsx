@@ -3,9 +3,9 @@
 import { useRouter } from "next/navigation";
 import { type SubmitEvent, useState } from "react";
 
-import { signIn } from "@/lib/auth-client";
+import { signUp } from "@/lib/auth-client";
 
-export function SignInForm({ redirectTo }: { redirectTo: string }) {
+export function SignUpForm({ redirectTo }: { redirectTo: string }) {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string>();
@@ -13,11 +13,18 @@ export function SignInForm({ redirectTo }: { redirectTo: string }) {
     async function onSubmit(e: SubmitEvent<HTMLFormElement>) {
         e.preventDefault();
         const data = new FormData(e.currentTarget);
+        const password = String(data.get("password"));
 
-        await signIn.email(
+        if (password !== String(data.get("confirmPassword"))) {
+            setError("Passwords do not match.");
+            return;
+        }
+
+        await signUp.email(
             {
+                name: String(data.get("name")),
                 email: String(data.get("email")),
-                password: String(data.get("password")),
+                password,
             },
             {
                 onRequest: () => {
@@ -25,7 +32,7 @@ export function SignInForm({ redirectTo }: { redirectTo: string }) {
                     setLoading(true);
                 },
                 onSuccess: () => {
-                    // Leave `loading` on while navigating.
+                    // better-auth signs the user in after sign-up by default.
                     router.replace(redirectTo);
                     router.refresh();
                 },
@@ -40,13 +47,24 @@ export function SignInForm({ redirectTo }: { redirectTo: string }) {
     return (
         <form onSubmit={onSubmit} className="flex flex-col gap-3">
             <label className="fieldset">
+                <span className="fieldset-legend">Full name</span>
+                <input
+                    type="text"
+                    name="name"
+                    placeholder="Full name"
+                    autoComplete="name"
+                    className="input input-neutral w-full"
+                    required
+                />
+            </label>
+            <label className="fieldset">
                 <span className="fieldset-legend">Email</span>
                 <input
                     type="email"
                     name="email"
                     placeholder="your@email.com"
                     autoComplete="email"
-                    className="input w-full"
+                    className="input input-neutral w-full"
                     required
                 />
             </label>
@@ -55,15 +73,28 @@ export function SignInForm({ redirectTo }: { redirectTo: string }) {
                 <input
                     type="password"
                     name="password"
-                    placeholder="Password"
-                    autoComplete="current-password"
-                    className="input w-full"
+                    placeholder="At least 8 characters"
+                    autoComplete="new-password"
+                    minLength={8}
+                    className="input input-neutral w-full"
+                    required
+                />
+            </label>
+            <label className="fieldset">
+                <span className="fieldset-legend">Confirm password</span>
+                <input
+                    type="password"
+                    name="confirmPassword"
+                    placeholder="Confirm password"
+                    autoComplete="new-password"
+                    minLength={8}
+                    className="input input-neutral w-full"
                     required
                 />
             </label>
 
             {error && (
-                <div role="alert" className="alert alert-error alert-soft">
+                <div role="alert" className="alert alert-error">
                     <span>{error}</span>
                 </div>
             )}
@@ -74,7 +105,7 @@ export function SignInForm({ redirectTo }: { redirectTo: string }) {
                 disabled={loading}
             >
                 {loading && <span className="loading loading-spinner" />}
-                Sign in
+                Create account
             </button>
         </form>
     );

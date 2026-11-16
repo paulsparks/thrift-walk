@@ -1,5 +1,3 @@
-// SAVE AS: web/src/app/page.tsx  (HOME PAGE)
-
 import Link from "next/link";
 import type { ReactNode } from "react";
 

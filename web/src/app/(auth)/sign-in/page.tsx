@@ -2,9 +2,9 @@ import Link from "next/link";
 
 import { getSafeRedirect, withRedirect } from "@/lib/auth-redirect";
 
-import { SignUpForm } from "./sign-up-form";
+import { SignInForm } from "./sign-in-form";
 
-export default async function SignUpPage({
+export default async function SignInPage({
     searchParams,
 }: {
     searchParams: Promise<{ redirect?: string | string[] }>;
@@ -13,17 +13,17 @@ export default async function SignUpPage({
 
     return (
         <main className="flex flex-1 items-center justify-center">
-            <div className="card bg-base-100 w-full max-w-sm shadow-md">
+            <div className="card bg-base-100 border-base-content w-full max-w-sm border-2 shadow-[4px_4px_0_var(--color-base-content)]">
                 <div className="card-body gap-4">
-                    <h1 className="card-title text-2xl">Create account</h1>
-                    <SignUpForm redirectTo={redirectTo} />
+                    <h1 className="card-title text-3xl">Sign in</h1>
+                    <SignInForm redirectTo={redirectTo} />
                     <p className="text-sm">
-                        Already have an account?{" "}
+                        Don&apos;t have an account?{" "}
                         <Link
-                            href={withRedirect("/sign-in", redirectTo)}
+                            href={withRedirect("/sign-up", redirectTo)}
                             className="link link-primary"
                         >
-                            Sign in
+                            Create account
                         </Link>
                     </p>
                 </div>

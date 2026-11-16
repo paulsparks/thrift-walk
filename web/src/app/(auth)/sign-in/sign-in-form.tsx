@@ -3,9 +3,9 @@
 import { useRouter } from "next/navigation";
 import { type SubmitEvent, useState } from "react";
 
-import { signUp } from "@/lib/auth-client";
+import { signIn } from "@/lib/auth-client";
 
-export function SignUpForm({ redirectTo }: { redirectTo: string }) {
+export function SignInForm({ redirectTo }: { redirectTo: string }) {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string>();
@@ -13,18 +13,11 @@ export function SignUpForm({ redirectTo }: { redirectTo: string }) {
     async function onSubmit(e: SubmitEvent<HTMLFormElement>) {
         e.preventDefault();
         const data = new FormData(e.currentTarget);
-        const password = String(data.get("password"));
 
-        if (password !== String(data.get("confirmPassword"))) {
-            setError("Passwords do not match.");
-            return;
-        }
-
-        await signUp.email(
+        await signIn.email(
             {
-                name: String(data.get("name")),
                 email: String(data.get("email")),
-                password,
+                password: String(data.get("password")),
             },
             {
                 onRequest: () => {
@@ -32,7 +25,7 @@ export function SignUpForm({ redirectTo }: { redirectTo: string }) {
                     setLoading(true);
                 },
                 onSuccess: () => {
-                    // better-auth signs the user in after sign-up by default.
+                    // Leave `loading` on while navigating.
                     router.replace(redirectTo);
                     router.refresh();
                 },
@@ -47,24 +40,13 @@ export function SignUpForm({ redirectTo }: { redirectTo: string }) {
     return (
         <form onSubmit={onSubmit} className="flex flex-col gap-3">
             <label className="fieldset">
-                <span className="fieldset-legend">Full name</span>
-                <input
-                    type="text"
-                    name="name"
-                    placeholder="Full name"
-                    autoComplete="name"
-                    className="input w-full"
-                    required
-                />
-            </label>
-            <label className="fieldset">
                 <span className="fieldset-legend">Email</span>
                 <input
                     type="email"
                     name="email"
                     placeholder="your@email.com"
                     autoComplete="email"
-                    className="input w-full"
+                    className="input input-neutral w-full"
                     required
                 />
             </label>
@@ -73,28 +55,15 @@ export function SignUpForm({ redirectTo }: { redirectTo: string }) {
                 <input
                     type="password"
                     name="password"
-                    placeholder="At least 8 characters"
-                    autoComplete="new-password"
-                    minLength={8}
-                    className="input w-full"
-                    required
-                />
-            </label>
-            <label className="fieldset">
-                <span className="fieldset-legend">Confirm password</span>
-                <input
-                    type="password"
-                    name="confirmPassword"
-                    placeholder="Confirm password"
-                    autoComplete="new-password"
-                    minLength={8}
-                    className="input w-full"
+                    placeholder="Password"
+                    autoComplete="current-password"
+                    className="input input-neutral w-full"
                     required
                 />
             </label>
 
             {error && (
-                <div role="alert" className="alert alert-error alert-soft">
+                <div role="alert" className="alert alert-error">
                     <span>{error}</span>
                 </div>
             )}
@@ -105,7 +74,7 @@ export function SignUpForm({ redirectTo }: { redirectTo: string }) {
                 disabled={loading}
             >
                 {loading && <span className="loading loading-spinner" />}
-                Create account
+                Sign in
             </button>
         </form>
     );
