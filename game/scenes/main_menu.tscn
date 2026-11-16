@@ -1,0 +1,108 @@
+[gd_scene format=3 uid="uid://cksfptkfjvwkx"]
+
+[ext_resource type="Script" uid="uid://c6nvv5mk7j2qy" path="res://scripts/main_menu.gd" id="1_l6cm7"]
+[ext_resource type="Texture2D" uid="uid://cfupry1l3084r" path="res://textures/thriftwalk-bg.svg" id="2_ekxnf"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_l6cm7"]
+bg_color = Color(0.3529412, 0.33333334, 0.19215687, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tbmy8"]
+bg_color = Color(0.14117648, 0.15294118, 0.105882354, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ekxnf"]
+bg_color = Color(0.7137255, 0.6784314, 0.40784314, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wu84c"]
+bg_color = Color(0.14117648, 0.15294118, 0.105882354, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bqqt6"]
+bg_color = Color(0.7137255, 0.6784314, 0.40784314, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_usjad"]
+bg_color = Color(0.14117648, 0.15294118, 0.105882354, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8ln24"]
+bg_color = Color(0.7137255, 0.6784314, 0.40784314, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jk1qb"]
+bg_color = Color(0.14117648, 0.15294118, 0.105882354, 1)
+
+[node name="MainMenu" type="Control" unique_id=1553695569]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BackGround" type="ColorRect" parent="." unique_id=1285588911]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.14117648, 0.15294118, 0.105882354, 1)
+script = ExtResource("1_l6cm7")
+
+[node name="MenuPanel" type="PanelContainer" parent="." unique_id=1271084819]
+custom_minimum_size = Vector2(520, 0)
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 400.0
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_l6cm7")
+
+[node name="CenterContainer" type="CenterContainer" parent="MenuPanel" unique_id=1579660660]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MenuPanel/CenterContainer" unique_id=771884100]
+layout_mode = 2
+
+[node name="Logo" type="TextureRect" parent="MenuPanel/CenterContainer/VBoxContainer" unique_id=854484531]
+custom_minimum_size = Vector2(420, 210)
+layout_mode = 2
+texture = ExtResource("2_ekxnf")
+expand_mode = 1
+
+[node name="Subtitle" type="Label" parent="MenuPanel/CenterContainer/VBoxContainer" unique_id=472585552]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.14117648, 0.15294118, 0.105882354, 1)
+text = "Explore.  Find.  Trade."
+horizontal_alignment = 1
+
+[node name="ButtonPanel" type="PanelContainer" parent="MenuPanel/CenterContainer/VBoxContainer" unique_id=503981630]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_tbmy8")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MenuPanel/CenterContainer/VBoxContainer/ButtonPanel" unique_id=176647517]
+layout_mode = 2
+
+[node name="PlayButton" type="Button" parent="MenuPanel/CenterContainer/VBoxContainer/ButtonPanel/VBoxContainer" unique_id=407849887]
+custom_minimum_size = Vector2(300, 55)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.14117648, 0.15294118, 0.105882354, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_ekxnf")
+theme_override_styles/hover = SubResource("StyleBoxFlat_wu84c")
+text = "Play"
+
+[node name="SettingsButton" type="Button" parent="MenuPanel/CenterContainer/VBoxContainer/ButtonPanel/VBoxContainer" unique_id=629224584]
+custom_minimum_size = Vector2(300, 55)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.14117648, 0.15294118, 0.105882354, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_bqqt6")
+theme_override_styles/hover = SubResource("StyleBoxFlat_usjad")
+text = "Settings"
+
+[node name="QuitButton" type="Button" parent="MenuPanel/CenterContainer/VBoxContainer/ButtonPanel/VBoxContainer" unique_id=863216147]
+custom_minimum_size = Vector2(300, 55)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.14117648, 0.15294118, 0.105882354, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_8ln24")
+theme_override_styles/hover = SubResource("StyleBoxFlat_jk1qb")
+text = "Quit"
+
+[connection signal="pressed" from="MenuPanel/CenterContainer/VBoxContainer/ButtonPanel/VBoxContainer/PlayButton" to="BackGround" method="_on_play_button_pressed"]
+[connection signal="pressed" from="MenuPanel/CenterContainer/VBoxContainer/ButtonPanel/VBoxContainer/SettingsButton" to="BackGround" method="_on_settings_button_pressed"]
+[connection signal="pressed" from="MenuPanel/CenterContainer/VBoxContainer/ButtonPanel/VBoxContainer/QuitButton" to="BackGround" method="_on_quit_button_pressed"]

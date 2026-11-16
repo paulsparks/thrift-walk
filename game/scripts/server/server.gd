@@ -4,6 +4,8 @@ const PORT := 8080
 const SERVER_HOST := "localhost"
 const PLAYER_SCENE := preload("res://objects/player.tscn")
 const PLAYER_NODE_PREFIX := "Player_"
+const DEFAULT_SCENE := "res://maps/default.tscn"
+const PLAYER_SPAWN_HEIGHT := 1.25
 
 
 class PlayerSpawn:
@@ -18,8 +20,28 @@ var _pending_spawns: Array[PlayerSpawn] = []
 func _ready() -> void:
 	if OS.has_feature("dedicated_server"):
 		_start_server()
-	else:
+		call_deferred("_load_default_scene")
+
+
+func start_game() -> void:
+	if get_tree().current_scene.scene_file_path == DEFAULT_SCENE:
+		return
+
+	var error := get_tree().change_scene_to_file(DEFAULT_SCENE)
+	if error != OK:
+		push_error("Could not load default scene: %s" % error)
+		return
+
+	await get_tree().scene_changed
+
+	if multiplayer.multiplayer_peer is OfflineMultiplayerPeer:
 		_join_server()
+
+
+func _load_default_scene() -> void:
+	var error := get_tree().change_scene_to_file(DEFAULT_SCENE)
+	if error != OK:
+		push_error("Could not load default scene: %s" % error)
 
 
 func _join_server() -> void:
@@ -67,13 +89,18 @@ func _start_server() -> void:
 
 func _on_peer_connected(id: int) -> void:
 	print("Peer connected: ", id)
+
 	# A late-joining client must receive every existing player before it gets its
 	# own. The client queues these RPCs until its world scene is ready.
 	for peer_id in _players:
 		var player: PlayerController = _players[peer_id]
 		_spawn_player.rpc_id(id, player.controlling_peer_id, player.global_position)
 
-	var spawn_position := Vector3(float(_players.size()) * 2.0, 1.0, 0.0)
+	var spawn_position := Vector3(
+		float(_players.size()) * 2.0,
+		PLAYER_SPAWN_HEIGHT,
+		0.0
+	)
 	_spawn_player_local(id, spawn_position)
 	_spawn_player.rpc(id, spawn_position)
 
@@ -87,6 +114,7 @@ func _on_peer_disconnected(id: int) -> void:
 func _process(_delta: float) -> void:
 	if _pending_spawns.is_empty() or get_tree().current_scene == null:
 		return
+
 	var spawns := _pending_spawns
 	_pending_spawns.clear()
 	for spawn in spawns:
@@ -110,6 +138,7 @@ func _spawn_player_local(peer_id: int, spawn_position: Vector3) -> void:
 	var node_name := "%s%s" % [PLAYER_NODE_PREFIX, peer_id]
 	if world.has_node(NodePath(node_name)):
 		return
+
 	var player := PLAYER_SCENE.instantiate() as PlayerController
 	player.name = node_name
 	world.add_child(player)
@@ -126,14 +155,19 @@ func _despawn_player(peer_id: int) -> void:
 
 func _despawn_player_local(peer_id: int) -> void:
 	_players.erase(peer_id)
+
 	var remaining_spawns: Array[PlayerSpawn] = []
 	for pending_spawn in _pending_spawns:
 		if pending_spawn.peer_id != peer_id:
 			remaining_spawns.append(pending_spawn)
 	_pending_spawns = remaining_spawns
+
 	var world := get_tree().current_scene
 	if world == null:
 		return
-	var player := world.get_node_or_null(NodePath("%s%s" % [PLAYER_NODE_PREFIX, peer_id]))
+
+	var player := world.get_node_or_null(
+		NodePath("%s%s" % [PLAYER_NODE_PREFIX, peer_id])
+	)
 	if player != null:
 		player.queue_free()

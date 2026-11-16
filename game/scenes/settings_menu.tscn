@@ -1,0 +1,203 @@
+[gd_scene format=3 uid="uid://bqy6s5akihi8r"]
+
+[ext_resource type="Script" uid="uid://w737r2msf2ku" path="res://scripts/settings_menu.gd" id="1_05p07"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ojnr2"]
+bg_color = Color(0.3529412, 0.33333334, 0.19215687, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_owc20"]
+bg_color = Color(0.7137255, 0.6784314, 0.40784314, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bgjg7"]
+bg_color = Color(0.14117648, 0.15294118, 0.105882354, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cr101"]
+bg_color = Color(0.7137255, 0.6784314, 0.40784314, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lwwgp"]
+bg_color = Color(0.14117648, 0.15294118, 0.105882354, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wswnh"]
+bg_color = Color(0.7137255, 0.6784314, 0.40784314, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_labj1"]
+bg_color = Color(0.14117648, 0.15294118, 0.105882354, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_emoma"]
+bg_color = Color(0.7137255, 0.6784314, 0.40784314, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_16av6"]
+bg_color = Color(0.14117648, 0.15294118, 0.105882354, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_288vi"]
+bg_color = Color(0.7137255, 0.6784314, 0.40784314, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ahts1"]
+bg_color = Color(0.14117648, 0.15294118, 0.105882354, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6rpyw"]
+bg_color = Color(0.7137255, 0.6784314, 0.40784314, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5le0k"]
+bg_color = Color(0.14117648, 0.15294118, 0.105882354, 1)
+
+[node name="SettingsMenu" type="Control" unique_id=1096812617]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_05p07")
+
+[node name="BackGround" type="ColorRect" parent="." unique_id=1732281697]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.14117648, 0.15294118, 0.105882354, 1)
+
+[node name="SettingsPanel" type="PanelContainer" parent="." unique_id=98773285]
+custom_minimum_size = Vector2(700, 420)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ojnr2")
+
+[node name="PanelPadding" type="MarginContainer" parent="SettingsPanel" unique_id=510688311]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="PanelLayout" type="VBoxContainer" parent="SettingsPanel/PanelPadding" unique_id=44782038]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Columns" type="HBoxContainer" parent="SettingsPanel/PanelPadding/PanelLayout" unique_id=1273154744]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 24
+
+[node name="CategoryList" type="VBoxContainer" parent="SettingsPanel/PanelPadding/PanelLayout/Columns" unique_id=710848534]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+
+[node name="AudioButton" type="Button" parent="SettingsPanel/PanelPadding/PanelLayout/Columns/CategoryList" unique_id=1349965730]
+custom_minimum_size = Vector2(150, 48)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.14117648, 0.15294118, 0.105882354, 1)
+theme_override_colors/icon_hover_color = Color(0.14117648, 0.15294118, 0.105882354, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_owc20")
+theme_override_styles/hover = SubResource("StyleBoxFlat_bgjg7")
+text = "Audio"
+
+[node name="VideoButton" type="Button" parent="SettingsPanel/PanelPadding/PanelLayout/Columns/CategoryList" unique_id=2008942530]
+custom_minimum_size = Vector2(150, 48)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.14117648, 0.15294118, 0.105882354, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_cr101")
+theme_override_styles/hover = SubResource("StyleBoxFlat_lwwgp")
+text = "Video"
+
+[node name="ControlsButton" type="Button" parent="SettingsPanel/PanelPadding/PanelLayout/Columns/CategoryList" unique_id=1447441111]
+custom_minimum_size = Vector2(150, 48)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.14117648, 0.15294118, 0.105882354, 1)
+theme_override_colors/icon_hover_color = Color(0.14117648, 0.15294118, 0.105882354, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_wswnh")
+theme_override_styles/hover = SubResource("StyleBoxFlat_labj1")
+text = "Controls"
+
+[node name="SettingsContent" type="VBoxContainer" parent="SettingsPanel/PanelPadding/PanelLayout/Columns" unique_id=2121036226]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PageTitle" type="Label" parent="SettingsPanel/PanelPadding/PanelLayout/Columns/SettingsContent" unique_id=957804764]
+layout_mode = 2
+text = "Audio"
+
+[node name="Hseparator" type="HSeparator" parent="SettingsPanel/PanelPadding/PanelLayout/Columns/SettingsContent" unique_id=916646917]
+layout_mode = 2
+
+[node name="MasterVolumeLabel" type="Label" parent="SettingsPanel/PanelPadding/PanelLayout/Columns/SettingsContent" unique_id=1708942366]
+layout_mode = 2
+text = "Master Volume"
+
+[node name="MasterVolumeSlider" type="HSlider" parent="SettingsPanel/PanelPadding/PanelLayout/Columns/SettingsContent" unique_id=1292659844]
+custom_minimum_size = Vector2(300, 24)
+layout_mode = 2
+value = 50.0
+
+[node name="SensitivityLabel" type="Label" parent="SettingsPanel/PanelPadding/PanelLayout/Columns/SettingsContent" unique_id=1692979430]
+layout_mode = 2
+text = "Sensitivity"
+
+[node name="SensitivitySlider" type="HSlider" parent="SettingsPanel/PanelPadding/PanelLayout/Columns/SettingsContent" unique_id=510278168]
+custom_minimum_size = Vector2(300, 24)
+layout_mode = 2
+value = 50.0
+
+[node name="HeadMovementToggle" type="CheckButton" parent="SettingsPanel/PanelPadding/PanelLayout/Columns/SettingsContent" unique_id=1370883527]
+layout_mode = 2
+button_pressed = true
+text = "Head Movement"
+
+[node name="BottomButtons" type="HBoxContainer" parent="SettingsPanel/PanelPadding/PanelLayout" unique_id=1053888325]
+layout_mode = 2
+
+[node name="BackToMainMenuButton" type="Button" parent="SettingsPanel/PanelPadding/PanelLayout/BottomButtons" unique_id=316248366]
+custom_minimum_size = Vector2(170, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.14117648, 0.15294118, 0.105882354, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_emoma")
+theme_override_styles/hover = SubResource("StyleBoxFlat_16av6")
+text = "Main Menu"
+
+[node name="ButtonSpacer2" type="Control" parent="SettingsPanel/PanelPadding/PanelLayout/BottomButtons" unique_id=84423126]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RestoreDefaultsButton" type="Button" parent="SettingsPanel/PanelPadding/PanelLayout/BottomButtons" unique_id=2015482865]
+custom_minimum_size = Vector2(150, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.14117648, 0.15294118, 0.105882354, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_288vi")
+theme_override_styles/hover = SubResource("StyleBoxFlat_ahts1")
+text = "Restore Defaults"
+
+[node name="ButtonSpacer" type="Control" parent="SettingsPanel/PanelPadding/PanelLayout/BottomButtons" unique_id=47702206]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ApplyButton" type="Button" parent="SettingsPanel/PanelPadding/PanelLayout/BottomButtons" unique_id=36669701]
+custom_minimum_size = Vector2(110, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.14117648, 0.15294118, 0.105882354, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_6rpyw")
+theme_override_styles/hover = SubResource("StyleBoxFlat_5le0k")
+text = "Apply"
+
+[node name="RestoreDefaultsDialog" type="ConfirmationDialog" parent="." unique_id=1934840710]
+title = "Restore Defaults?"
+ok_button_text = "Change"
+
+[connection signal="pressed" from="SettingsPanel/PanelPadding/PanelLayout/Columns/CategoryList/AudioButton" to="." method="_on_audio_button_pressed"]
+[connection signal="pressed" from="SettingsPanel/PanelPadding/PanelLayout/Columns/CategoryList/VideoButton" to="." method="_on_video_button_pressed"]
+[connection signal="pressed" from="SettingsPanel/PanelPadding/PanelLayout/Columns/CategoryList/ControlsButton" to="." method="_on_controls_button_pressed"]
+[connection signal="pressed" from="SettingsPanel/PanelPadding/PanelLayout/BottomButtons/BackToMainMenuButton" to="." method="_on_back_to_main_menu_button_pressed"]
+[connection signal="pressed" from="SettingsPanel/PanelPadding/PanelLayout/BottomButtons/RestoreDefaultsButton" to="." method="_on_restore_defaults_button_pressed"]
+[connection signal="pressed" from="SettingsPanel/PanelPadding/PanelLayout/BottomButtons/ApplyButton" to="." method="_on_apply_button_pressed"]
+[connection signal="confirmed" from="RestoreDefaultsDialog" to="." method="_on_restore_defaults_dialog_confirmed"]
