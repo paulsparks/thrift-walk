@@ -7,8 +7,8 @@ export const metadata = {
         "Everything you need to know about digitizing your physical items for the ThriftWalk market.",
 };
 
-// TODO: replace with real Discord invite link.
-const DISCORD_URL = "https://discord.com";
+// TODO: replace with your real Discord invite link.
+const DISCORD_URL = "https://discord.gg/YkCgY5xQFj";
 
 const faqs = [
     {
@@ -52,7 +52,6 @@ export default function ScanFaq() {
                         <details
                             key={faq.question}
                             className="collapse collapse-arrow border-2 border-base-content bg-base-100"
-                            open
                         >
                             <summary className="collapse-title font-display text-lg font-extrabold sm:text-xl">
                                 {faq.question}

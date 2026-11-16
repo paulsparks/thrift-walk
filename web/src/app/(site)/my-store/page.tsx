@@ -1,7 +1,9 @@
 import { IconCloudUpload, IconHelpCircle } from "@tabler/icons-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { StoreBrowser } from "@/components/store-browser";
+import { getSessionDb } from "@/lib/session-db";
 
 export const metadata = {
     title: "My Store | ThriftWalk",
@@ -9,7 +11,19 @@ export const metadata = {
         "Browse second-hand finds from the community, or turn your own items into 3D models and list them in seconds.",
 };
 
-export default function MyStore() {
+export default async function MyStore() {
+    const session = await getSessionDb();
+    if (!session) redirect("/sign-in?redirect=/my-store");
+
+    const [items, favorites] = await Promise.all([
+        session.db.item.findMany({
+            orderBy: { createdAt: "desc" },
+            select: { id: true, name: true, details: true, priceCents: true },
+        }),
+        // Access policies only return the signed-in user's own wishlist rows.
+        session.db.wishlistItem.findMany({ select: { itemId: true } }),
+    ]);
+
     return (
         <main>
             <section className="border-b-2 border-base-content bg-base-200 py-12 lg:py-16">
@@ -27,7 +41,7 @@ export default function MyStore() {
                     <div className="flex flex-wrap gap-4">
                         <Link
                             href="/my-store/upload"
-                            className="btn btn-accent"
+                            className="btn btn-ghost-outline"
                         >
                             <IconCloudUpload size={20} aria-hidden="true" />
                             Image upload for 3D scan
@@ -45,7 +59,10 @@ export default function MyStore() {
 
             <section className="py-12">
                 <div className="mx-auto max-w-6xl px-6">
-                    <StoreBrowser />
+                    <StoreBrowser
+                        items={items}
+                        initialFavoriteIds={favorites.map((f) => f.itemId)}
+                    />
                 </div>
             </section>
         </main>

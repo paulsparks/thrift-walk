@@ -208,3 +208,95 @@ export type VerificationGetPayload<
     Args extends $SelectIncludeOmit<$Schema, "Verification", true>,
     Options extends $QueryOptions<$Schema> = $QueryOptions<$Schema>,
 > = $Result<$Schema, "Verification", Args, Options>;
+export type ItemFindManyArgs = $FindManyArgs<$Schema, "Item">;
+export type ItemFindUniqueArgs = $FindUniqueArgs<$Schema, "Item">;
+export type ItemFindFirstArgs = $FindFirstArgs<$Schema, "Item">;
+export type ItemExistsArgs = $ExistsArgs<$Schema, "Item">;
+export type ItemCreateArgs = $CreateArgs<$Schema, "Item">;
+export type ItemCreateManyArgs = $CreateManyArgs<$Schema, "Item">;
+export type ItemCreateManyAndReturnArgs = $CreateManyAndReturnArgs<
+    $Schema,
+    "Item"
+>;
+export type ItemUpdateArgs = $UpdateArgs<$Schema, "Item">;
+export type ItemUpdateManyArgs = $UpdateManyArgs<$Schema, "Item">;
+export type ItemUpdateManyAndReturnArgs = $UpdateManyAndReturnArgs<
+    $Schema,
+    "Item"
+>;
+export type ItemUpsertArgs = $UpsertArgs<$Schema, "Item">;
+export type ItemDeleteArgs = $DeleteArgs<$Schema, "Item">;
+export type ItemDeleteManyArgs = $DeleteManyArgs<$Schema, "Item">;
+export type ItemCountArgs = $CountArgs<$Schema, "Item">;
+export type ItemAggregateArgs = $AggregateArgs<$Schema, "Item">;
+export type ItemGroupByArgs = $GroupByArgs<$Schema, "Item">;
+export type ItemWhereInput = $WhereInput<$Schema, "Item">;
+export type ItemSelect = $SelectInput<$Schema, "Item">;
+export type ItemInclude = $IncludeInput<$Schema, "Item">;
+export type ItemOmit = $OmitInput<$Schema, "Item">;
+export type ItemUncheckedCreateInput = $UncheckedCreateInput<$Schema, "Item">;
+export type ItemCheckedCreateInput = $CheckedCreateInput<$Schema, "Item">;
+export type ItemUncheckedUpdateInput = $UncheckedUpdateInput<$Schema, "Item">;
+export type ItemCheckedUpdateInput = $CheckedUpdateInput<$Schema, "Item">;
+export type ItemGetPayload<
+    Args extends $SelectIncludeOmit<$Schema, "Item", true>,
+    Options extends $QueryOptions<$Schema> = $QueryOptions<$Schema>,
+> = $Result<$Schema, "Item", Args, Options>;
+export type WishlistItemFindManyArgs = $FindManyArgs<$Schema, "WishlistItem">;
+export type WishlistItemFindUniqueArgs = $FindUniqueArgs<
+    $Schema,
+    "WishlistItem"
+>;
+export type WishlistItemFindFirstArgs = $FindFirstArgs<$Schema, "WishlistItem">;
+export type WishlistItemExistsArgs = $ExistsArgs<$Schema, "WishlistItem">;
+export type WishlistItemCreateArgs = $CreateArgs<$Schema, "WishlistItem">;
+export type WishlistItemCreateManyArgs = $CreateManyArgs<
+    $Schema,
+    "WishlistItem"
+>;
+export type WishlistItemCreateManyAndReturnArgs = $CreateManyAndReturnArgs<
+    $Schema,
+    "WishlistItem"
+>;
+export type WishlistItemUpdateArgs = $UpdateArgs<$Schema, "WishlistItem">;
+export type WishlistItemUpdateManyArgs = $UpdateManyArgs<
+    $Schema,
+    "WishlistItem"
+>;
+export type WishlistItemUpdateManyAndReturnArgs = $UpdateManyAndReturnArgs<
+    $Schema,
+    "WishlistItem"
+>;
+export type WishlistItemUpsertArgs = $UpsertArgs<$Schema, "WishlistItem">;
+export type WishlistItemDeleteArgs = $DeleteArgs<$Schema, "WishlistItem">;
+export type WishlistItemDeleteManyArgs = $DeleteManyArgs<
+    $Schema,
+    "WishlistItem"
+>;
+export type WishlistItemCountArgs = $CountArgs<$Schema, "WishlistItem">;
+export type WishlistItemAggregateArgs = $AggregateArgs<$Schema, "WishlistItem">;
+export type WishlistItemGroupByArgs = $GroupByArgs<$Schema, "WishlistItem">;
+export type WishlistItemWhereInput = $WhereInput<$Schema, "WishlistItem">;
+export type WishlistItemSelect = $SelectInput<$Schema, "WishlistItem">;
+export type WishlistItemInclude = $IncludeInput<$Schema, "WishlistItem">;
+export type WishlistItemOmit = $OmitInput<$Schema, "WishlistItem">;
+export type WishlistItemUncheckedCreateInput = $UncheckedCreateInput<
+    $Schema,
+    "WishlistItem"
+>;
+export type WishlistItemCheckedCreateInput = $CheckedCreateInput<
+    $Schema,
+    "WishlistItem"
+>;
+export type WishlistItemUncheckedUpdateInput = $UncheckedUpdateInput<
+    $Schema,
+    "WishlistItem"
+>;
+export type WishlistItemCheckedUpdateInput = $CheckedUpdateInput<
+    $Schema,
+    "WishlistItem"
+>;
+export type WishlistItemGetPayload<
+    Args extends $SelectIncludeOmit<$Schema, "WishlistItem", true>,
+    Options extends $QueryOptions<$Schema> = $QueryOptions<$Schema>,
+> = $Result<$Schema, "WishlistItem", Args, Options>;

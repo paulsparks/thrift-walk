@@ -132,6 +132,12 @@ export class SchemaType implements SchemaDef {
                     array: true,
                     relation: { opposite: "user" },
                 },
+                wishlist: {
+                    name: "wishlist",
+                    type: "WishlistItem",
+                    array: true,
+                    relation: { opposite: "user" },
+                },
             },
             attributes: [
                 {
@@ -508,6 +514,300 @@ export class SchemaType implements SchemaDef {
             idFields: ["id"],
             uniqueFields: {
                 id: { type: "String" },
+            },
+        },
+        Item: {
+            name: "Item",
+            fields: {
+                id: {
+                    name: "id",
+                    type: "String",
+                    id: true,
+                    attributes: [
+                        { name: "@id" },
+                        {
+                            name: "@default",
+                            args: [
+                                {
+                                    name: "value",
+                                    value: ExpressionUtils.call("cuid"),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    default: ExpressionUtils.call("cuid") as FieldDefault,
+                },
+                name: {
+                    name: "name",
+                    type: "String",
+                },
+                details: {
+                    name: "details",
+                    type: "String",
+                },
+                priceCents: {
+                    name: "priceCents",
+                    type: "Int",
+                },
+                createdAt: {
+                    name: "createdAt",
+                    type: "DateTime",
+                    attributes: [
+                        {
+                            name: "@default",
+                            args: [
+                                {
+                                    name: "value",
+                                    value: ExpressionUtils.call("now"),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    default: ExpressionUtils.call("now") as FieldDefault,
+                },
+                wishlist: {
+                    name: "wishlist",
+                    type: "WishlistItem",
+                    array: true,
+                    relation: { opposite: "item" },
+                },
+            },
+            attributes: [
+                {
+                    name: "@@map",
+                    args: [
+                        {
+                            name: "name",
+                            value: ExpressionUtils.literal("item"),
+                        },
+                    ],
+                },
+                {
+                    name: "@@allow",
+                    args: [
+                        {
+                            name: "operation",
+                            value: ExpressionUtils.literal("read"),
+                        },
+                        {
+                            name: "condition",
+                            value: ExpressionUtils.binary(
+                                ExpressionUtils.call("auth"),
+                                "!=",
+                                ExpressionUtils._null(),
+                            ),
+                        },
+                    ],
+                },
+            ] as readonly AttributeApplication[],
+            idFields: ["id"],
+            uniqueFields: {
+                id: { type: "String" },
+            },
+        },
+        WishlistItem: {
+            name: "WishlistItem",
+            fields: {
+                id: {
+                    name: "id",
+                    type: "String",
+                    id: true,
+                    attributes: [
+                        { name: "@id" },
+                        {
+                            name: "@default",
+                            args: [
+                                {
+                                    name: "value",
+                                    value: ExpressionUtils.call("cuid"),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    default: ExpressionUtils.call("cuid") as FieldDefault,
+                },
+                userId: {
+                    name: "userId",
+                    type: "String",
+                    attributes: [
+                        {
+                            name: "@default",
+                            args: [
+                                {
+                                    name: "value",
+                                    value: ExpressionUtils.member(
+                                        ExpressionUtils.call("auth"),
+                                        ["id"],
+                                    ),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    default: ExpressionUtils.member(
+                        ExpressionUtils.call("auth"),
+                        ["id"],
+                    ) as FieldDefault,
+                    foreignKeyFor: ["user"] as readonly string[],
+                },
+                user: {
+                    name: "user",
+                    type: "User",
+                    attributes: [
+                        {
+                            name: "@relation",
+                            args: [
+                                {
+                                    name: "fields",
+                                    value: ExpressionUtils.array("String", [
+                                        ExpressionUtils.field("userId"),
+                                    ]),
+                                },
+                                {
+                                    name: "references",
+                                    value: ExpressionUtils.array("String", [
+                                        ExpressionUtils.field("id"),
+                                    ]),
+                                },
+                                {
+                                    name: "onDelete",
+                                    value: ExpressionUtils.literal("Cascade"),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    relation: {
+                        opposite: "wishlist",
+                        fields: ["userId"],
+                        references: ["id"],
+                        onDelete: "Cascade",
+                        hasDefault: true,
+                    },
+                },
+                itemId: {
+                    name: "itemId",
+                    type: "String",
+                    foreignKeyFor: ["item"] as readonly string[],
+                },
+                item: {
+                    name: "item",
+                    type: "Item",
+                    attributes: [
+                        {
+                            name: "@relation",
+                            args: [
+                                {
+                                    name: "fields",
+                                    value: ExpressionUtils.array("String", [
+                                        ExpressionUtils.field("itemId"),
+                                    ]),
+                                },
+                                {
+                                    name: "references",
+                                    value: ExpressionUtils.array("String", [
+                                        ExpressionUtils.field("id"),
+                                    ]),
+                                },
+                                {
+                                    name: "onDelete",
+                                    value: ExpressionUtils.literal("Cascade"),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    relation: {
+                        opposite: "wishlist",
+                        fields: ["itemId"],
+                        references: ["id"],
+                        onDelete: "Cascade",
+                    },
+                },
+                createdAt: {
+                    name: "createdAt",
+                    type: "DateTime",
+                    attributes: [
+                        {
+                            name: "@default",
+                            args: [
+                                {
+                                    name: "value",
+                                    value: ExpressionUtils.call("now"),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    default: ExpressionUtils.call("now") as FieldDefault,
+                },
+            },
+            attributes: [
+                {
+                    name: "@@unique",
+                    args: [
+                        {
+                            name: "fields",
+                            value: ExpressionUtils.array("String", [
+                                ExpressionUtils.field("userId"),
+                                ExpressionUtils.field("itemId"),
+                            ]),
+                        },
+                    ],
+                },
+                {
+                    name: "@@map",
+                    args: [
+                        {
+                            name: "name",
+                            value: ExpressionUtils.literal("wishlist_item"),
+                        },
+                    ],
+                },
+                {
+                    name: "@@allow",
+                    args: [
+                        {
+                            name: "operation",
+                            value: ExpressionUtils.literal("create"),
+                        },
+                        {
+                            name: "condition",
+                            value: ExpressionUtils.binary(
+                                ExpressionUtils.member(
+                                    ExpressionUtils.call("auth"),
+                                    ["id"],
+                                ),
+                                "==",
+                                ExpressionUtils.field("userId"),
+                            ),
+                        },
+                    ],
+                },
+                {
+                    name: "@@allow",
+                    args: [
+                        {
+                            name: "operation",
+                            value: ExpressionUtils.literal("read,delete"),
+                        },
+                        {
+                            name: "condition",
+                            value: ExpressionUtils.binary(
+                                ExpressionUtils.member(
+                                    ExpressionUtils.call("auth"),
+                                    ["id"],
+                                ),
+                                "==",
+                                ExpressionUtils.field("userId"),
+                            ),
+                        },
+                    ],
+                },
+            ] as readonly AttributeApplication[],
+            idFields: ["id"],
+            uniqueFields: {
+                id: { type: "String" },
+                userId_itemId: {
+                    userId: { type: "String" },
+                    itemId: { type: "String" },
+                },
             },
         },
     } as const;

@@ -1,13 +1,18 @@
 import {
     IconCamera,
+    IconCube,
     IconDotsVertical,
     IconPlus,
     IconUserFilled,
 } from "@tabler/icons-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Fragment, type ReactNode } from "react";
 
 import { ShareButton } from "@/components/share-button";
+import { WishlistRemoveButton } from "@/components/wishlist-remove-button";
+import { formatPrice } from "@/lib/format";
+import { getSessionDb } from "@/lib/session-db";
 
 export const metadata = {
     title: "Profile | ThriftWalk",
@@ -58,122 +63,186 @@ const emptyState = (text: string) => (
     </p>
 );
 
-const tabs: { id: string; label: string; panel: ReactNode }[] = [
-    {
-        id: "inventory",
-        label: "Inventory (156)",
-        panel: (
-            <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                {inventory.map((item) => (
-                    <li
-                        key={item.name}
-                        className="card card-border border-base-content bg-base-100"
-                    >
-                        <div
-                            className={`flex aspect-square flex-col items-center justify-center gap-2 rounded-t-[calc(var(--radius-box)-2px)] border-b-2 border-base-content ${item.tile}`}
-                        >
-                            <svg
-                                className="size-24"
-                                viewBox="0 0 120 120"
-                                fill="none"
-                                stroke="#1E222A"
-                                strokeWidth={3}
-                                strokeLinejoin="round"
-                                aria-hidden="true"
-                            >
-                                <title>3D asset placeholder</title>
-                                <path
-                                    d="M60 14l42 24-42 24-42-24z"
-                                    fill="#F4F1DE"
-                                />
-                                <path
-                                    d="M18 38l42 24v44L18 82z"
-                                    fill="#EAE6CC"
-                                />
-                                <path
-                                    d="M102 38v44l-42 24V62z"
-                                    fill="#D9D4B4"
-                                />
-                            </svg>
-                            <span className="text-xs font-semibold tracking-widest uppercase">
-                                3D asset
-                            </span>
-                        </div>
-                        <div className="card-body gap-1 p-4">
-                            <h3 className="font-display font-extrabold">
-                                {item.name}
-                            </h3>
-                            <p className="text-xs tracking-wide uppercase opacity-60">
-                                {item.category} • {item.rarity}
-                            </p>
-                            <div className="mt-3 flex items-center justify-between">
-                                <p className="text-sm font-semibold">
-                                    ${item.value} Est. Value
-                                </p>
-                                <details className="dropdown dropdown-end">
-                                    <summary
-                                        className="btn btn-ghost btn-square btn-xs list-none shadow-none"
-                                        aria-label={`More options for ${item.name}`}
-                                    >
-                                        <IconDotsVertical
-                                            size={16}
-                                            aria-hidden="true"
-                                        />
-                                    </summary>
-                                    <ul className="menu dropdown-content z-10 w-44 rounded-box border-2 border-base-content bg-base-100 p-2">
-                                        <li>
-                                            <Link href="/my-store">
-                                                List in store
-                                            </Link>
-                                        </li>
-                                        <li>
-                                            <Link href="/my-store/upload">
-                                                Edit item
-                                            </Link>
-                                        </li>
-                                    </ul>
-                                </details>
-                            </div>
-                        </div>
-                    </li>
-                ))}
-                <li className="self-start">
-                    <Link
-                        href="/my-store"
-                        className="card aspect-square items-center justify-center border-2 border-dashed border-base-content/40 text-base-content/60 transition-colors hover:border-base-content hover:bg-base-200 hover:text-base-content"
-                    >
-                        <IconPlus size={40} aria-hidden="true" />
-                        <span className="mt-2 text-sm font-semibold tracking-widest uppercase">
-                            Add item
-                        </span>
-                    </Link>
-                </li>
-            </ul>
-        ),
-    },
-    {
-        id: "wishlist",
-        label: "Wishlist (28)",
-        panel: emptyState("Items you save from the store will show up here."),
-    },
-    {
-        id: "scans",
-        label: "Scan History",
-        panel: emptyState("Your 3D scans will show up here."),
-    },
-    {
-        id: "transactions",
-        label: "Transactions",
-        panel: emptyState("Your purchases and sales will show up here."),
-    },
-    {
-        id: "stall",
-        label: "Stall Settings",
-        panel: emptyState("Customize how your stall looks to other players."),
-    },
+type WishlistEntry = {
+    itemId: string;
+    item: { name: string; details: string; priceCents: number };
+};
+
+const wishlistTiles = [
+    "bg-secondary text-secondary-content",
+    "bg-accent text-accent-content",
+    "bg-info text-info-content",
 ];
 
-export default function Profile() {
+function WishlistPanel({ entries }: { entries: WishlistEntry[] }) {
+    if (entries.length === 0) {
+        return (
+            <div className="rounded-box border-2 border-dashed border-base-content/40 p-12 text-center">
+                <p className="opacity-70">
+                    Items you save from the store will show up here.
+                </p>
+                <Link href="/my-store" className="btn btn-primary mt-6">
+                    Browse the store
+                </Link>
+            </div>
+        );
+    }
+
+    return (
+        <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {entries.map(({ itemId, item }, index) => (
+                <li
+                    key={itemId}
+                    className="card card-border border-base-content bg-base-100"
+                >
+                    <div
+                        className={`flex aspect-square items-center justify-center rounded-t-[calc(var(--radius-box)-2px)] border-b-2 border-base-content ${wishlistTiles[index % wishlistTiles.length]}`}
+                    >
+                        <IconCube size={96} />
+                    </div>
+                    <div className="card-body gap-1 p-4">
+                        <div className="flex items-start justify-between gap-2">
+                            <h3 className="font-display font-extrabold leading-tight">
+                                {item.name}
+                            </h3>
+                            <span className="font-display font-extrabold">
+                                {formatPrice(item.priceCents)}
+                            </span>
+                        </div>
+                        <p className="text-sm opacity-70">{item.details}</p>
+                        <WishlistRemoveButton
+                            itemId={itemId}
+                            name={item.name}
+                        />
+                    </div>
+                </li>
+            ))}
+        </ul>
+    );
+}
+
+type Tab = { id: string; label: string; panel: ReactNode };
+
+function buildTabs(wishlist: WishlistEntry[]): Tab[] {
+    return [
+        {
+            id: "inventory",
+            label: "Inventory (156)",
+            panel: (
+                <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                    {inventory.map((item) => (
+                        <li
+                            key={item.name}
+                            className="card card-border border-base-content bg-base-100"
+                        >
+                            <div
+                                className={`flex aspect-square flex-col items-center justify-center gap-2 rounded-t-[calc(var(--radius-box)-2px)] border-b-2 border-base-content ${item.tile}`}
+                            >
+                                <IconCube size={96} />
+                                <span className="text-xs font-semibold tracking-widest uppercase">
+                                    3D asset
+                                </span>
+                            </div>
+                            <div className="card-body gap-1 p-4">
+                                <h3 className="font-display font-extrabold">
+                                    {item.name}
+                                </h3>
+                                <p className="text-xs tracking-wide uppercase opacity-60">
+                                    {item.category} • {item.rarity}
+                                </p>
+                                <div className="mt-3 flex items-center justify-between">
+                                    <p className="text-sm font-semibold">
+                                        ${item.value} Est. Value
+                                    </p>
+                                    <details className="dropdown dropdown-end">
+                                        <summary
+                                            className="btn btn-ghost btn-square btn-xs list-none shadow-none"
+                                            aria-label={`More options for ${item.name}`}
+                                        >
+                                            <IconDotsVertical
+                                                size={16}
+                                                aria-hidden="true"
+                                            />
+                                        </summary>
+                                        <ul className="menu dropdown-content z-10 w-44 rounded-box border-2 border-base-content bg-base-100 p-2">
+                                            <li>
+                                                <Link href="/my-store">
+                                                    List in store
+                                                </Link>
+                                            </li>
+                                            <li>
+                                                <Link href="/my-store/upload">
+                                                    Edit item
+                                                </Link>
+                                            </li>
+                                        </ul>
+                                    </details>
+                                </div>
+                            </div>
+                        </li>
+                    ))}
+                    <li className="self-start">
+                        <Link
+                            href="/my-store"
+                            className="card aspect-square items-center justify-center border-2 border-dashed border-base-content/40 text-base-content/60 transition-colors hover:border-base-content hover:bg-base-200 hover:text-base-content"
+                        >
+                            <IconPlus size={40} aria-hidden="true" />
+                            <span className="mt-2 text-sm font-semibold tracking-widest uppercase">
+                                Add item
+                            </span>
+                        </Link>
+                    </li>
+                </ul>
+            ),
+        },
+        {
+            id: "wishlist",
+            label: `Wishlist (${wishlist.length})`,
+            panel: <WishlistPanel entries={wishlist} />,
+        },
+        {
+            id: "scans",
+            label: "Scan History",
+            panel: emptyState("Your 3D scans will show up here."),
+        },
+        {
+            id: "transactions",
+            label: "Transactions",
+            panel: emptyState("Your purchases and sales will show up here."),
+        },
+        {
+            id: "stall",
+            label: "Stall Settings",
+            panel: emptyState(
+                "Customize how your stall looks to other players.",
+            ),
+        },
+    ];
+}
+
+export default async function Profile({
+    searchParams,
+}: {
+    searchParams: Promise<{ tab?: string }>;
+}) {
+    const session = await getSessionDb();
+    if (!session) redirect("/sign-in?redirect=/profile");
+
+    // Access policies only return the signed-in user's own wishlist rows.
+    const wishlist = await session.db.wishlistItem.findMany({
+        orderBy: { createdAt: "desc" },
+        select: {
+            itemId: true,
+            item: {
+                select: { name: true, details: true, priceCents: true },
+            },
+        },
+    });
+
+    const tabs = buildTabs(wishlist);
+    const { tab } = await searchParams;
+    const activeTab = tabs.some((t) => t.id === tab) ? tab : "inventory";
+
     return (
         <main className="py-12 lg:py-16">
             <div className="mx-auto max-w-6xl px-6">
@@ -241,14 +310,14 @@ export default function Profile() {
 
                 <section className="mt-14">
                     <div role="tablist" className="tabs tabs-border tabs-lg">
-                        {tabs.map((t, i) => (
+                        {tabs.map((t) => (
                             <Fragment key={t.id}>
                                 <input
                                     type="radio"
                                     name="profile_tabs"
                                     className="tab"
                                     aria-label={t.label}
-                                    defaultChecked={i === 0}
+                                    defaultChecked={t.id === activeTab}
                                 />
                                 <div className="tab-content pt-8">
                                     {t.panel}

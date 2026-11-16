@@ -1,71 +1,24 @@
 "use client";
 
-import { IconHeart, IconHeartFilled, IconSearch } from "@tabler/icons-react";
+import {
+    IconCube,
+    IconHeart,
+    IconHeartFilled,
+    IconSearch,
+} from "@tabler/icons-react";
+import { useClientQueries } from "@zenstackhq/tanstack-query/react";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
-type Item = {
-    id: number;
-    name: string;
-    price: number;
-    details: string;
-};
+import { formatPrice } from "@/lib/format";
+import { schema } from "~/zenstack/schema";
 
-// Placeholder listings (first four come from the wireframe). Newest first.
-// Replace with data from database.
-const items: Item[] = [
-    {
-        id: 1,
-        name: "Vintage Bomber Jacket",
-        price: 85,
-        details: "Gently Used • XL",
-    },
-    {
-        id: 2,
-        name: "Retro Cassette Player",
-        price: 45,
-        details: "Vintage • Working",
-    },
-    {
-        id: 3,
-        name: "Industrial Coffee Table",
-        price: 120,
-        details: "Custom • Heavy",
-    },
-    {
-        id: 4,
-        name: "Classic Leather Boots",
-        price: 95,
-        details: "New with Tags • 10",
-    },
-    { id: 5, name: "Denim Trucker Jacket", price: 60, details: "Used • M" },
-    {
-        id: 6,
-        name: "Mid-Century Table Lamp",
-        price: 38,
-        details: "Vintage • Working",
-    },
-    {
-        id: 7,
-        name: "Polaroid Land Camera",
-        price: 72,
-        details: "Vintage • Tested",
-    },
-    { id: 8, name: "Wool Peacoat", price: 110, details: "Gently Used • L" },
-    { id: 9, name: "Vinyl Record Crate", price: 30, details: "Rustic • Wood" },
-    {
-        id: 10,
-        name: "Silk Scarf Set",
-        price: 22,
-        details: "New with Tags • One size",
-    },
-    { id: 11, name: "Brass Desk Fan", price: 55, details: "Vintage • Working" },
-    {
-        id: 12,
-        name: "Corduroy Tote Bag",
-        price: 18,
-        details: "Gently Used • Canvas",
-    },
-];
+export type StoreItem = {
+    id: string;
+    name: string;
+    details: string;
+    priceCents: number;
+};
 
 const tiles = [
     "bg-secondary text-secondary-content",
@@ -82,7 +35,7 @@ const sorts = {
 
 type SortKey = keyof typeof sorts;
 
-function toggle(set: Set<number>, id: number) {
+function toggle(set: Set<string>, id: string) {
     const next = new Set(set);
     if (next.has(id)) {
         next.delete(id);
@@ -92,11 +45,59 @@ function toggle(set: Set<number>, id: number) {
     return next;
 }
 
-export function StoreBrowser() {
+export function StoreBrowser({
+    items,
+    initialFavoriteIds,
+}: {
+    /** Newest first. */
+    items: StoreItem[];
+    /** IDs of the items already on the signed-in user's wishlist. */
+    initialFavoriteIds: string[];
+}) {
     const [query, setQuery] = useState("");
     const [sort, setSort] = useState<SortKey>("latest");
-    const [favorites, setFavorites] = useState<Set<number>>(new Set());
-    const [inCart, setInCart] = useState<Set<number>>(new Set());
+    const [favorites, setFavorites] = useState(
+        () => new Set(initialFavoriteIds),
+    );
+    const [pending, setPending] = useState<Set<string>>(new Set());
+    const [inCart, setInCart] = useState<Set<string>>(new Set());
+    const [error, setError] = useState("");
+
+    const client = useClientQueries(schema);
+    const addFavorite = client.wishlistItem.useCreate();
+    const removeFavorite = client.wishlistItem.useDeleteMany();
+
+    async function toggleFavorite(id: string) {
+        if (pending.has(id)) return;
+
+        const wasFavorite = favorites.has(id);
+        setError("");
+        setPending((p) => new Set(p).add(id));
+        // Update the heart right away, then undo it if saving fails.
+        setFavorites((f) => toggle(f, id));
+
+        try {
+            if (wasFavorite) {
+                await removeFavorite.mutateAsync({ where: { itemId: id } });
+            } else {
+                await addFavorite.mutateAsync({ data: { itemId: id } });
+            }
+        } catch {
+            setFavorites((f) => toggle(f, id));
+            setError("Couldn’t update your wishlist. Please try again.");
+        } finally {
+            setPending((p) => {
+                const next = new Set(p);
+                next.delete(id);
+                return next;
+            });
+        }
+    }
+
+    const indexById = useMemo(
+        () => new Map(items.map((item, index) => [item.id, index])),
+        [items],
+    );
 
     const visible = useMemo(() => {
         const q = query.trim().toLowerCase();
@@ -106,16 +107,16 @@ export function StoreBrowser() {
                 i.details.toLowerCase().includes(q),
         );
         if (sort === "price-asc")
-            return [...list].sort((a, b) => a.price - b.price);
+            return [...list].sort((a, b) => a.priceCents - b.priceCents);
         if (sort === "price-desc")
-            return [...list].sort((a, b) => b.price - a.price);
+            return [...list].sort((a, b) => b.priceCents - a.priceCents);
         return list;
-    }, [query, sort]);
+    }, [items, query, sort]);
 
     return (
         <div className="overflow-hidden rounded-box border-2 border-base-content bg-base-200">
             <div className="flex flex-wrap items-center justify-between gap-4 border-b-2 border-base-content p-4 sm:p-5">
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                     <h2 className="font-display text-xl font-extrabold">
                         Items for sale
                     </h2>
@@ -123,6 +124,13 @@ export function StoreBrowser() {
                         {visible.length}{" "}
                         {visible.length === 1 ? "item" : "items"}
                     </output>
+                    <Link
+                        href="/profile?tab=wishlist"
+                        className="btn btn-ghost-outline btn-sm"
+                    >
+                        <IconHeart size={16} aria-hidden="true" />
+                        Wishlist ({favorites.size})
+                    </Link>
                 </div>
                 <div className="flex w-full flex-wrap gap-3 sm:w-auto">
                     <label className="input w-full sm:w-64">
@@ -154,46 +162,37 @@ export function StoreBrowser() {
                 </div>
             </div>
 
+            {error && (
+                <p
+                    role="alert"
+                    className="border-b-2 border-base-content bg-accent px-5 py-3 text-sm font-semibold text-accent-content"
+                >
+                    {error}
+                </p>
+            )}
+
             {visible.length === 0 ? (
                 <p className="p-12 text-center opacity-70">
-                    No items match “{query}”. Try a different search.
+                    {items.length === 0
+                        ? "Nothing is for sale yet. Check back soon."
+                        : `No items match “${query}”. Try a different search.`}
                 </p>
             ) : (
                 <ul className="grid max-h-[40rem] gap-5 overflow-y-auto p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-4">
                     {visible.map((item) => {
                         const faved = favorites.has(item.id);
                         const carted = inCart.has(item.id);
+                        const tile =
+                            tiles[(indexById.get(item.id) ?? 0) % tiles.length];
                         return (
                             <li
                                 key={item.id}
                                 className="card card-border overflow-hidden border-base-content bg-base-100"
                             >
                                 <div
-                                    className={`relative flex aspect-square flex-col items-center justify-center gap-2 border-b-2 border-base-content ${tiles[item.id % tiles.length]}`}
+                                    className={`relative flex aspect-square flex-col items-center justify-center gap-2 border-b-2 border-base-content ${tile}`}
                                 >
-                                    <svg
-                                        className="size-24"
-                                        viewBox="0 0 120 120"
-                                        fill="none"
-                                        stroke="#1E222A"
-                                        strokeWidth={3}
-                                        strokeLinejoin="round"
-                                        aria-hidden="true"
-                                    >
-                                        <title>3D model placeholder</title>
-                                        <path
-                                            d="M60 14l42 24-42 24-42-24z"
-                                            fill="#F4F1DE"
-                                        />
-                                        <path
-                                            d="M18 38l42 24v44L18 82z"
-                                            fill="#EAE6CC"
-                                        />
-                                        <path
-                                            d="M102 38v44l-42 24V62z"
-                                            fill="#D9D4B4"
-                                        />
-                                    </svg>
+                                    <IconCube size={96} />
                                     <span className="text-sm font-semibold">
                                         3D model preview
                                     </span>
@@ -204,12 +203,8 @@ export function StoreBrowser() {
                                         type="button"
                                         className="btn btn-circle btn-sm absolute top-3 right-3 bg-base-100 text-base-content"
                                         aria-pressed={faved}
-                                        aria-label={`Save ${item.name}`}
-                                        onClick={() =>
-                                            setFavorites((f) =>
-                                                toggle(f, item.id),
-                                            )
-                                        }
+                                        aria-label={`Save ${item.name} to wishlist`}
+                                        onClick={() => toggleFavorite(item.id)}
                                     >
                                         {faved ? (
                                             <IconHeartFilled
@@ -230,7 +225,7 @@ export function StoreBrowser() {
                                             {item.name}
                                         </h3>
                                         <span className="font-display font-extrabold">
-                                            ${item.price}
+                                            {formatPrice(item.priceCents)}
                                         </span>
                                     </div>
                                     <p className="text-sm opacity-70">
