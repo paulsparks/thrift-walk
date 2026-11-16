@@ -2,7 +2,7 @@ extends Node
 
 const PORT := 8080
 const SERVER_HOST := "localhost"
-const PLAYER_SCENE := preload("res://objects/player.tscn")
+const PLAYER_SCENE := preload("res://scenes/objects/player/player.tscn")
 const PLAYER_NODE_PREFIX := "Player_"
 
 

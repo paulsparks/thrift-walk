@@ -1,0 +1,84 @@
+[gd_scene format=3 uid="uid://dlk2mefjr4hyc"]
+
+[ext_resource type="Script" uid="uid://cykdlgulktwga" path="res://scripts/interactive/context_ui.gd" id="1_u00du"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_t7pqo"]
+bg_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="LabelSettings" id="LabelSettings_i8p4n"]
+font_size = 14
+font_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_u00du"]
+font_size = 12
+font_color = Color(1, 1, 1, 0.7058824)
+
+[node name="PlayerUI" type="Control" unique_id=1317581980]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Crosshair" type="ColorRect" parent="." unique_id=980448189]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -2.0
+offset_top = -2.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(1, 1, 1, 0.705882)
+
+[node name="ContextUI" type="CenterContainer" parent="." unique_id=1354867702 node_paths=PackedStringArray("tooltip", "interact_key_label", "tooltip_label")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_u00du")
+tooltip = NodePath("Tooltip")
+interact_key_label = NodePath("Tooltip/InteractKey/Label")
+tooltip_label = NodePath("Tooltip/TooltipLabel")
+
+[node name="Tooltip" type="HBoxContainer" parent="ContextUI" unique_id=65668222]
+custom_minimum_size = Vector2(400, 50)
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="InteractKey" type="Panel" parent="ContextUI/Tooltip" unique_id=366069939]
+custom_minimum_size = Vector2(18, 18)
+custom_maximum_size = Vector2(18, 18)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_t7pqo")
+
+[node name="Label" type="Label" parent="ContextUI/Tooltip/InteractKey" unique_id=493981645]
+layout_mode = 0
+offset_right = 18.0
+offset_bottom = 18.0
+text = "E"
+label_settings = SubResource("LabelSettings_i8p4n")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TooltipLabel" type="Label" parent="ContextUI/Tooltip" unique_id=943997426]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+offset_transform_enabled = true
+text = "Tooltip text"
+label_settings = SubResource("LabelSettings_u00du")
+vertical_alignment = 1

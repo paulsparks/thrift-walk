@@ -2,6 +2,10 @@
 class_name InteractComponent extends Node
 ## Put this under a CollisionObject3D to enable player interaction.
 
+@export var tooltip: String = ""
+
+@onready var parent := get_parent() as CollisionObject3D
+
 
 func _get_configuration_warnings() -> PackedStringArray:
 	if get_parent() is CollisionObject3D:
@@ -11,11 +15,18 @@ func _get_configuration_warnings() -> PackedStringArray:
 
 
 func _looked_at() -> void:
-	pass
+	ObjectHighlight.set_enabled(parent, true)
+
+	Context.tooltip = tooltip
+	Context.object = parent
 
 
 func _looked_away() -> void:
-	pass
+	ObjectHighlight.set_enabled(parent, false)
+
+	if Context.object == parent:
+		Context.tooltip = ""
+		Context.object = null
 
 
 func _triggered() -> void:
@@ -23,8 +34,6 @@ func _triggered() -> void:
 
 
 func _ready() -> void:
-	var parent := get_parent() as CollisionObject3D
-
 	if parent:
 		parent.set_collision_layer_value(2, true)
 

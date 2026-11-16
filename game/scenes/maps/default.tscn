@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bxrbp8ga2qjpb"]
 
-[ext_resource type="Texture2D" uid="uid://c2jxch7yhm4li" path="res://textures/ground.JPG" id="2_t67o2"]
+[ext_resource type="Texture2D" uid="uid://c2jxch7yhm4li" path="res://resources/textures/ground.JPG" id="2_t67o2"]
 [ext_resource type="Shader" uid="uid://dnj7i0yl0wuds" path="res://skybox-night.tres" id="2_yxxav"]
 [ext_resource type="Script" uid="uid://dpxthq3t8gkgy" path="res://scripts/interactive/cube_test.gd" id="3_na5r1"]
 [ext_resource type="Script" uid="uid://c7ej3prijlyh" path="res://scripts/interactive/interact_component.gd" id="4_na5r1"]
@@ -71,3 +71,4 @@ surface_material_override/0 = SubResource("StandardMaterial3D_dadqq")
 
 [node name="InteractComponent" type="Node" parent="StaticBody3D" unique_id=1696738240]
 script = ExtResource("4_na5r1")
+tooltip = "Change color"

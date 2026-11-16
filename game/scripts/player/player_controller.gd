@@ -38,14 +38,14 @@ var _view: PlayerView
 var _last_collider: CollisionObject3D = null
 
 @onready var camera: Camera3D = $Camera3D
-@onready var crosshair: ColorRect = $Crosshair
+@onready var ui: Control = $PlayerUI
 @onready var playermodel: MeshInstance3D = $Playermodel
 
 
 func _ready() -> void:
 	_server_position = global_position
 	_movement = PlayerMovement.new(self, camera)
-	_view = PlayerView.new(camera, crosshair)
+	_view = PlayerView.new(camera, ui)
 	_update_local_presentation()
 
 
