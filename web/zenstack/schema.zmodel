@@ -13,16 +13,17 @@ enum Role {
 }
 
 model User {
-    id            String    @id @default(cuid())
+    id            String         @id @default(cuid())
     name          String
-    email         String    @unique
-    emailVerified Boolean   @default(false)
+    email         String         @unique
+    emailVerified Boolean        @default(false)
     image         String?
-    createdAt     DateTime  @default(now())
-    updatedAt     DateTime  @default(now()) @updatedAt
-    role          Role      @default(User)
+    createdAt     DateTime       @default(now())
+    updatedAt     DateTime       @default(now()) @updatedAt
+    role          Role           @default(User)
     sessions      Session[]
     accounts      Account[]
+    wishlist      WishlistItem[]
 
     @@map('user')
     @@allow('read', auth().id == id)
@@ -71,4 +72,30 @@ model Verification {
     updatedAt  DateTime @default(now()) @updatedAt
 
     @@map('verification')
+}
+
+model Item {
+    id         String         @id @default(cuid())
+    name       String
+    details    String
+    priceCents Int
+    createdAt  DateTime       @default(now())
+    wishlist   WishlistItem[]
+
+    @@map('item')
+    @@allow('read', auth() != null)
+}
+
+model WishlistItem {
+    id        String   @id @default(cuid())
+    userId    String   @default(auth().id)
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    itemId    String
+    item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+    createdAt DateTime @default(now())
+
+    @@unique([userId, itemId])
+    @@map('wishlist_item')
+    @@allow('create', auth().id == userId)
+    @@allow('read,delete', auth().id == userId)
 }
