@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { type FormEvent, useState } from "react";
 
-import { LogoMark } from "./logo-mark";
+import { ThriftWalkLogo } from "./thriftwalk-logo";
 
 const gameLinks = [
     { label: "How to play", href: "/#how" },
@@ -37,7 +37,7 @@ export function SiteFooter() {
                         className="flex items-center gap-2.5 font-display text-xl font-extrabold"
                     >
                         <span className="grid size-8 place-items-center rounded-lg bg-primary text-primary-content">
-                            <LogoMark size={16} />
+                            <ThriftWalkLogo size={16} />
                         </span>
                         ThriftWalk
                     </Link>

@@ -1,3 +1,4 @@
+import { IconShirt, IconSofa, IconTags, IconWorld } from "@tabler/icons-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -5,17 +6,6 @@ export const metadata = {
     title: "About | ThriftWalk",
     description:
         "ThriftWalk was born from the idea that shopping for vintage and second-hand items should be as fun as playing an RPG.",
-};
-
-const iconProps = {
-    className: "size-8",
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 2,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-    "aria-hidden": true,
 };
 
 // Placeholder partner names from the wireframe. Replace with real integrations.
@@ -29,78 +19,36 @@ const platforms: {
         name: "RetroMarket",
         status: "Verified Partner",
         color: "bg-secondary text-secondary-content",
-        icon: (
-            <svg {...iconProps}>
-                <title>Price tags</title>
-                <path d="M3 3h8l10 10-8 8L3 11z" />
-                <circle cx="7.5" cy="7.5" r="1.5" />
-            </svg>
-        ),
+        icon: <IconTags size={32} aria-hidden="true" />,
     },
     {
         name: "VintageHub",
         status: "API Integrated",
         color: "bg-accent text-accent-content",
-        icon: (
-            <svg {...iconProps}>
-                <title>Shirt</title>
-                <path d="M8 3l4 2 4-2 6 3-2 4-2-1v11H6V9l-2 1-2-4z" />
-            </svg>
-        ),
+        icon: <IconShirt size={32} aria-hidden="true" />,
     },
     {
         name: "DecorSync",
         status: "Official Bridge",
         color: "bg-info text-info-content",
-        icon: (
-            <svg {...iconProps}>
-                <title>Sofa</title>
-                <path d="M4 11V8a3 3 0 013-3h10a3 3 0 013 3v3" />
-                <path d="M2 12a2 2 0 014 0v3h12v-3a2 2 0 014 0v5H2z" />
-                <path d="M5 17v2M19 17v2" />
-            </svg>
-        ),
+        icon: <IconSofa size={32} aria-hidden="true" />,
     },
     {
         name: "GlobalThrift",
         status: "Beta Sync",
         color: "bg-base-100 text-base-content",
-        icon: (
-            <svg {...iconProps}>
-                <title>Globe</title>
-                <circle cx="12" cy="12" r="9" />
-                <path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" />
-            </svg>
-        ),
+        icon: <IconWorld size={32} aria-hidden="true" />,
     },
 ];
 
 // Placeholder team from the wireframe. Swap initials for photos with next/image when you have them.
 const team = [
-    {
-        name: "Paul Sparks",
-        color: "bg-primary text-primary-content",
-    },
-    {
-        name: "JR Stidham",
-        color: "bg-primary text-primary-content",
-    },
-    {
-        name: "Patrick Newman",
-        color: "bg-primary text-primary-content",
-    },
-    {
-        name: "Henry Pursell",
-        color: "bg-primary text-primary-content",
-    },
-    {
-        name: "Ivan Roller",
-        color: "bg-primary text-primary-content",
-    },
-    {
-        name: "Conner Morgan",
-        color: "bg-primary text-primary-content",
-    },
+    { name: "JR Stidham", color: "bg-primary text-primary-content" },
+    { name: "Paul Sparks", color: "bg-primary text-primary-content" },
+    { name: "Patrick Newman", color: "bg-primary text-primary-content" },
+    { name: "Ivan Roller", color: "bg-primary text-primary-content" },
+    { name: "Henry Pursell", color: "bg-primary text-primary-content" },
+    { name: "Conner Morgan", color: "bg-primary text-primary-content" },
 ];
 
 const gridPath = [

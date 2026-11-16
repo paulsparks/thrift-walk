@@ -1,9 +1,10 @@
 "use client";
 
+import { IconCloudUpload } from "@tabler/icons-react";
 import { type ChangeEvent, useRef, useState } from "react";
 
-const MIN_PHOTOS = 5;
-const MAX_PHOTOS = 10;
+const MIN_PHOTOS = 20;
+const MAX_PHOTOS = 50;
 
 export function ScanDropzone() {
     const [files, setFiles] = useState<File[]>([]);
@@ -41,19 +42,7 @@ export function ScanDropzone() {
                     onChange={onChange}
                 />
                 <div className="grid size-20 place-items-center rounded-full bg-base-300">
-                    <svg
-                        className="size-9"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                    >
-                        <title>Upload</title>
-                        <path d="M7 18a4 4 0 01-.5-7.97A6 6 0 0118 9a4 4 0 011 7.9M12 12v8m0-8l-3 3m3-3l3 3" />
-                    </svg>
+                    <IconCloudUpload size={36} aria-hidden="true" />
                 </div>
                 <h2 className="mt-5 font-display text-2xl font-extrabold">
                     Drag and drop images

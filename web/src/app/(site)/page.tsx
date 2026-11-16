@@ -1,3 +1,9 @@
+import {
+    IconDeviceDesktop,
+    IconLamp,
+    IconShirt,
+    IconStar,
+} from "@tabler/icons-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -16,16 +22,6 @@ const steps = [
     },
 ];
 
-const iconProps = {
-    className: "size-16",
-    viewBox: "0 0 72 72",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 3,
-    strokeLinejoin: "round" as const,
-    "aria-hidden": true,
-};
-
 const categories: {
     name: string;
     href: string;
@@ -38,50 +34,28 @@ const categories: {
         href: "/my-store",
         count: "2.4k items",
         color: "bg-secondary text-secondary-content",
-        icon: (
-            <svg {...iconProps}>
-                <title>Shirt</title>
-                <path d="M26 10l10 6 10-6 18 10-7 12-7-3v31H22V29l-7 3-7-12z" />
-            </svg>
-        ),
+        icon: <IconShirt size={64} stroke={1.5} aria-hidden="true" />,
     },
     {
         name: "Retro home",
         href: "/my-store",
         count: "1.8k items",
         color: "bg-accent text-accent-content",
-        icon: (
-            <svg {...iconProps}>
-                <title>Lamp</title>
-                <path d="M36 8c-8 0-14 6-14 14v8h28v-8c0-8-6-14-14-14z" />
-                <path d="M26 30l-4 30h28l-4-30M16 60h40" />
-            </svg>
-        ),
+        icon: <IconLamp size={64} stroke={1.5} aria-hidden="true" />,
     },
     {
         name: "Collectibles",
         href: "/my-store",
         count: "950 items",
         color: "bg-[#F4F1DE] text-[#1E222A]",
-        icon: (
-            <svg {...iconProps}>
-                <title>Star</title>
-                <path d="M36 8l8 18 20 2-15 14 5 20-18-11-18 11 5-20L8 28l20-2z" />
-            </svg>
-        ),
+        icon: <IconStar size={64} stroke={1.5} aria-hidden="true" />,
     },
     {
         name: "Tech and gadgets",
         href: "/my-store",
         count: "1.1k items",
         color: "bg-info text-info-content",
-        icon: (
-            <svg {...iconProps}>
-                <title>Monitor</title>
-                <rect x="10" y="16" width="52" height="34" rx="4" />
-                <path d="M26 62h20M36 50v12M24 28h24M24 38h12" />
-            </svg>
-        ),
+        icon: <IconDeviceDesktop size={64} stroke={1.5} aria-hidden="true" />,
     },
 ];
 

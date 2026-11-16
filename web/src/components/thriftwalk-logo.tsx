@@ -1,4 +1,4 @@
-export function LogoMark({ size }: { size: number }) {
+export function ThriftWalkLogo({ size }: { size: number }) {
     return (
         <svg
             width={size}
