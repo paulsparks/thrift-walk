@@ -38,6 +38,7 @@ var _view: PlayerView
 @onready var camera: Camera3D = $Camera3D
 @onready var crosshair: ColorRect = $Crosshair
 @onready var playermodel: MeshInstance3D = $Playermodel
+@onready var footstep_audio: AudioStreamPlayer = $AudioStreamPlayer
 
 
 func _ready() -> void:
@@ -96,6 +97,13 @@ func _physics_process(delta: float) -> void:
 			_apply_remote_server_state(delta)
 	_update_head_bob(delta)
 
+#Footstep audio while the player is walking on the ground
+	if _is_local_controller():
+		if is_on_floor() and Vector2(velocity.x, velocity.z).length() > 0.2:
+			if not footstep_audio.playing:
+				footstep_audio.play()
+		else:
+			footstep_audio.stop()
 
 func _submit_and_predict_local_input(delta: float) -> void:
 	var input_frame := PlayerInputFrame.new()
