@@ -1,6 +1,9 @@
+import { IconCloudUpload, IconHelpCircle } from "@tabler/icons-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { StoreBrowser } from "@/components/store-browser";
+import { getSessionDb } from "@/lib/session-db";
 
 export const metadata = {
     title: "My Store | ThriftWalk",
@@ -8,7 +11,19 @@ export const metadata = {
         "Browse second-hand finds from the community, or turn your own items into 3D models and list them in seconds.",
 };
 
-export default function MyStore() {
+export default async function MyStore() {
+    const session = await getSessionDb();
+    if (!session) redirect("/sign-in?redirect=/my-store");
+
+    const [items, favorites] = await Promise.all([
+        session.db.item.findMany({
+            orderBy: { createdAt: "desc" },
+            select: { id: true, name: true, details: true, priceCents: true },
+        }),
+        // Access policies only return the signed-in user's own wishlist rows.
+        session.db.wishlistItem.findMany({ select: { itemId: true } }),
+    ]);
+
     return (
         <main>
             <section className="border-b-2 border-base-content bg-base-200 py-12 lg:py-16">
@@ -26,41 +41,16 @@ export default function MyStore() {
                     <div className="flex flex-wrap gap-4">
                         <Link
                             href="/my-store/upload"
-                            className="btn btn-accent"
+                            className="btn btn-ghost-outline"
                         >
-                            <svg
-                                className="size-5"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth={2}
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                aria-hidden="true"
-                            >
-                                <title>Upload</title>
-                                <path d="M7 18a4 4 0 01-.5-7.97A6 6 0 0118 9a4 4 0 011 7.9M12 12v8m0-8l-3 3m3-3l3 3" />
-                            </svg>
+                            <IconCloudUpload size={20} aria-hidden="true" />
                             Image upload for 3D scan
                         </Link>
                         <Link
                             href="/help/3d-scan"
                             className="btn btn-ghost-outline"
                         >
-                            <svg
-                                className="size-5"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth={2}
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                aria-hidden="true"
-                            >
-                                <title>Help</title>
-                                <circle cx="12" cy="12" r="9" />
-                                <path d="M9.5 9.5a2.5 2.5 0 115 0c0 1.5-2.5 2-2.5 3.5M12 17h.01" />
-                            </svg>
+                            <IconHelpCircle size={20} aria-hidden="true" />
                             3D scan help
                         </Link>
                     </div>
@@ -69,7 +59,10 @@ export default function MyStore() {
 
             <section className="py-12">
                 <div className="mx-auto max-w-6xl px-6">
-                    <StoreBrowser />
+                    <StoreBrowser
+                        items={items}
+                        initialFavoriteIds={favorites.map((f) => f.itemId)}
+                    />
                 </div>
             </section>
         </main>

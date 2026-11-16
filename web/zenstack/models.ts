@@ -12,5 +12,7 @@ export type User = $ModelResult<$Schema, "User">;
 export type Session = $ModelResult<$Schema, "Session">;
 export type Account = $ModelResult<$Schema, "Account">;
 export type Verification = $ModelResult<$Schema, "Verification">;
+export type Item = $ModelResult<$Schema, "Item">;
+export type WishlistItem = $ModelResult<$Schema, "WishlistItem">;
 export const Role = $schema.enums.Role.values;
 export type Role = (typeof Role)[keyof typeof Role];
