@@ -35,6 +35,8 @@ var _pending_inputs: Array[PlayerInputFrame] = []
 var _movement: PlayerMovement
 var _view: PlayerView
 
+var _last_collider: CollisionObject3D = null
+
 @onready var camera: Camera3D = $Camera3D
 @onready var crosshair: ColorRect = $Crosshair
 @onready var playermodel: MeshInstance3D = $Playermodel
@@ -235,17 +237,39 @@ func _update_head_bob(delta: float) -> void:
 func _input(event: InputEvent) -> void:
 	if not _is_local_controller():
 		return
+
 	if event is InputEventMouseButton:
 		var mouse_event := event as InputEventMouseButton
 		if mouse_event.pressed and mouse_event.button_index == MOUSE_BUTTON_LEFT:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
 	if event is InputEventKey:
 		var key_event := event as InputEventKey
-		if key_event.pressed and key_event.keycode == KEY_ESCAPE:
-			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		if key_event.pressed:
+			if key_event.keycode == KEY_ESCAPE:
+				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+			if event.is_action_pressed("interact"):
+				var collider := hand_ray.get("collider") as CollisionObject3D
+				if collider and collider.has_user_signal("triggered"):
+					collider.emit_signal("triggered")
 
 
 func _process(_delta: float) -> void:
 	if not _is_local_controller():
 		return
 	hand_ray = _view.get_raycast(get_world_3d(), get_viewport())
+	_update_gaze_target()
+
+
+func _update_gaze_target() -> void:
+	var collider := hand_ray.get("collider") as CollisionObject3D
+	if collider == _last_collider:
+		return
+
+	if _last_collider and _last_collider.has_user_signal("looked_away"):
+		_last_collider.emit_signal("looked_away")
+
+	if collider and collider.has_user_signal("looked_at"):
+		collider.emit_signal("looked_at")
+
+	_last_collider = collider

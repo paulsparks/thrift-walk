@@ -5,7 +5,7 @@ const SENSITIVITY := 0.003
 const BOB_FREQ := 2.2
 const BOB_AMP := 0.04
 const BOB_FADE_SPEED := 8.0
-const REACH_DISTANCE := 3.0
+const REACH_DISTANCE := 2.0
 
 var _camera: Camera3D
 var _crosshair: ColorRect
