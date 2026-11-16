@@ -11,13 +11,13 @@ config_version=5
 [application]
 
 config/name="ThriftWalk"
-run/main_scene="uid://bxrbp8ga2qjpb"
+run/main_scene="uid://cksfptkfjvwkx"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
 [autoload]
 
-Server="uid://dni71xbjlpq0m"
+Server="*uid://dni71xbjlpq0m"
 
 [debug]
 
