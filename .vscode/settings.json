@@ -16,5 +16,14 @@
     "godotTools.lsp.headless": true,
     "[gdscript]": {
         "editor.defaultFormatter": "EddieDover.gdscript-formatter-linter"
+    },
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/.jj": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "**/*.gd.uid": true
     }
 }

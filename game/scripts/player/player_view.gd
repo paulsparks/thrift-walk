@@ -5,24 +5,24 @@ const SENSITIVITY := 0.003
 const BOB_FREQ := 2.2
 const BOB_AMP := 0.04
 const BOB_FADE_SPEED := 8.0
-const REACH_DISTANCE := 3.0
+const REACH_DISTANCE := 2.0
 
 var _camera: Camera3D
-var _crosshair: ColorRect
+var _ui: Control
 var _yaw := 0.0
 var _pitch := 0.0
 var _bob_time := 0.0
 var _bob_weight := 0.0
 
 
-func _init(camera: Camera3D, crosshair: ColorRect) -> void:
+func _init(camera: Camera3D, ui: Control) -> void:
 	_camera = camera
-	_crosshair = crosshair
+	_ui = ui
 
 
 func set_local_control(is_local: bool) -> void:
 	_camera.current = is_local
-	_crosshair.visible = is_local
+	_ui.visible = is_local
 	if is_local:
 		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 

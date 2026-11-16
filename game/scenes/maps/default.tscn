@@ -1,7 +1,9 @@
 [gd_scene format=3 uid="uid://bxrbp8ga2qjpb"]
 
-[ext_resource type="Texture2D" uid="uid://c2jxch7yhm4li" path="res://textures/ground.JPG" id="2_t67o2"]
+[ext_resource type="Texture2D" uid="uid://c2jxch7yhm4li" path="res://resources/textures/ground.JPG" id="2_t67o2"]
 [ext_resource type="Shader" uid="uid://dnj7i0yl0wuds" path="res://skybox-night.tres" id="2_yxxav"]
+[ext_resource type="Script" uid="uid://dpxthq3t8gkgy" path="res://scripts/interactive/cube_test.gd" id="3_na5r1"]
+[ext_resource type="Script" uid="uid://c7ej3prijlyh" path="res://scripts/interactive/interact_component.gd" id="4_na5r1"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_i8p4n"]
 size = Vector3(50, 0.5, 50)
@@ -29,6 +31,13 @@ background_mode = 2
 background_energy_multiplier = 1.01
 sky = SubResource("Sky_w6vpw")
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_dadqq"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_i8p4n"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dadqq"]
+albedo_color = Color(1, 0, 0, 1)
+
 [node name="Default" type="Node3D" unique_id=1606817787]
 
 [node name="Ground" type="StaticBody3D" parent="." unique_id=413578364]
@@ -47,3 +56,19 @@ shadow_enabled = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=14259692]
 environment = SubResource("Environment_h8qry")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=1814298853]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -7)
+collision_layer = 3
+script = ExtResource("3_na5r1")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" unique_id=1950497698]
+shape = SubResource("BoxShape3D_dadqq")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D" unique_id=223029951]
+mesh = SubResource("BoxMesh_i8p4n")
+surface_material_override/0 = SubResource("StandardMaterial3D_dadqq")
+
+[node name="InteractComponent" type="Node" parent="StaticBody3D" unique_id=1696738240]
+script = ExtResource("4_na5r1")
+tooltip = "Change color"
