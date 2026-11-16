@@ -1,3 +1,4 @@
+import { IconBrandDiscord, IconMail } from "@tabler/icons-react";
 import Link from "next/link";
 
 export const metadata = {
@@ -6,7 +7,7 @@ export const metadata = {
         "Everything you need to know about digitizing your physical items for the ThriftWalk market.",
 };
 
-// TODO: replace with your real Discord invite link.
+// TODO: replace with real Discord invite link.
 const DISCORD_URL = "https://discord.com";
 
 const faqs = [
@@ -78,44 +79,14 @@ export default function ScanFaq() {
                             rel="noopener noreferrer"
                             className="btn btn-primary btn-lg"
                         >
-                            <svg
-                                className="size-5"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth={2}
-                                strokeLinejoin="round"
-                                aria-hidden="true"
-                            >
-                                <title>Chat</title>
-                                <path d="M3 5h12v9H8l-3 3v-3H3z" />
-                                <path d="M18 9h3v9h-2v3l-3-3H9v-2" />
-                            </svg>
+                            <IconBrandDiscord size={20} aria-hidden="true" />
                             Join Discord
                         </a>
                         <Link
                             href="/contact"
                             className="btn btn-ghost-outline btn-lg"
                         >
-                            <svg
-                                className="size-5"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth={2}
-                                strokeLinejoin="round"
-                                aria-hidden="true"
-                            >
-                                <title>Email</title>
-                                <rect
-                                    x="3"
-                                    y="5"
-                                    width="18"
-                                    height="14"
-                                    rx="2"
-                                />
-                                <path d="M3 7l9 6 9-6" />
-                            </svg>
+                            <IconMail size={20} aria-hidden="true" />
                             Contact support
                         </Link>
                     </div>

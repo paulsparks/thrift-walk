@@ -1,5 +1,6 @@
 "use client";
 
+import { IconShare } from "@tabler/icons-react";
 import { useState } from "react";
 
 export function ShareButton() {
@@ -31,21 +32,7 @@ export function ShareButton() {
                 aria-label="Share profile"
                 onClick={share}
             >
-                <svg
-                    className="size-5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    aria-hidden="true"
-                >
-                    <title>Share</title>
-                    <circle cx="18" cy="5" r="3" />
-                    <circle cx="6" cy="12" r="3" />
-                    <circle cx="18" cy="19" r="3" />
-                    <path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4" />
-                </svg>
+                <IconShare size={20} aria-hidden="true" />
             </button>
         </div>
     );

@@ -1,3 +1,4 @@
+import { IconBulb, IconCamera, IconShirt } from "@tabler/icons-react";
 import type { ReactNode } from "react";
 
 import { ScanDropzone } from "@/components/scan-dropzone";
@@ -23,17 +24,6 @@ const tips = [
     },
 ];
 
-const iconProps = {
-    className: "size-8",
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 2,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-    "aria-hidden": true,
-};
-
 // Placeholder scans from the wireframe. Replace with real scan jobs.
 const scans: {
     name: string;
@@ -47,25 +37,14 @@ const scans: {
         stage: "Processing meshes",
         percent: 65,
         bar: "progress-secondary",
-        icon: (
-            <svg {...iconProps}>
-                <title>Jacket</title>
-                <path d="M8 3l4 2 4-2 6 3-2 4-2-1v11H6V9l-2 1-2-4z" />
-            </svg>
-        ),
+        icon: <IconShirt size={32} aria-hidden="true" />,
     },
     {
         name: "Analog Camera (Draft)",
         stage: "Waiting for images…",
         percent: 20,
         bar: "progress-info",
-        icon: (
-            <svg {...iconProps}>
-                <title>Camera</title>
-                <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
-                <circle cx="12" cy="13" r="3.5" />
-            </svg>
-        ),
+        icon: <IconCamera size={32} aria-hidden="true" />,
     },
 ];
 
@@ -87,19 +66,7 @@ export default function ScanPage() {
 
                 <section className="mt-12 rounded-box border-2 border-base-content bg-neutral p-8 text-neutral-content">
                     <h2 className="flex items-center gap-3 font-display text-2xl font-extrabold">
-                        <svg
-                            className="size-6"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            aria-hidden="true"
-                        >
-                            <title>Lightbulb</title>
-                            <path d="M9 18h6M10 21h4M12 3a6 6 0 00-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0012 3z" />
-                        </svg>
+                        <IconBulb size={24} aria-hidden="true" />
                         Tips for 3D success
                     </h2>
                     <ol className="mt-6 grid gap-8 md:grid-cols-3">

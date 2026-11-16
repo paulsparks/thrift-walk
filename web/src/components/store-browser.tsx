@@ -1,5 +1,6 @@
 "use client";
 
+import { IconHeart, IconHeartFilled, IconSearch } from "@tabler/icons-react";
 import { useMemo, useState } from "react";
 
 type Item = {
@@ -10,7 +11,7 @@ type Item = {
 };
 
 // Placeholder listings (first four come from the wireframe). Newest first.
-// Replace with data from your database.
+// Replace with data from database.
 const items: Item[] = [
     {
         id: 1,
@@ -125,19 +126,11 @@ export function StoreBrowser() {
                 </div>
                 <div className="flex w-full flex-wrap gap-3 sm:w-auto">
                     <label className="input w-full sm:w-64">
-                        <svg
-                            className="size-5 opacity-60"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                            strokeLinecap="round"
+                        <IconSearch
+                            size={20}
+                            className="opacity-60"
                             aria-hidden="true"
-                        >
-                            <title>Search</title>
-                            <circle cx="11" cy="11" r="7" />
-                            <path d="M20 20l-4-4" />
-                        </svg>
+                        />
                         <input
                             type="search"
                             placeholder="Search items..."
@@ -218,20 +211,17 @@ export function StoreBrowser() {
                                             )
                                         }
                                     >
-                                        <svg
-                                            className="size-4"
-                                            viewBox="0 0 24 24"
-                                            fill={
-                                                faved ? "currentColor" : "none"
-                                            }
-                                            stroke="currentColor"
-                                            strokeWidth={2}
-                                            strokeLinejoin="round"
-                                            aria-hidden="true"
-                                        >
-                                            <title>Favorite</title>
-                                            <path d="M12 21s-8-5.2-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 5.8-8 11-8 11z" />
-                                        </svg>
+                                        {faved ? (
+                                            <IconHeartFilled
+                                                size={16}
+                                                aria-hidden="true"
+                                            />
+                                        ) : (
+                                            <IconHeart
+                                                size={16}
+                                                aria-hidden="true"
+                                            />
+                                        )}
                                     </button>
                                 </div>
                                 <div className="card-body gap-1 p-4">

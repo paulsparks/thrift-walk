@@ -1,3 +1,4 @@
+import { IconCloudUpload, IconHelpCircle } from "@tabler/icons-react";
 import Link from "next/link";
 
 import { StoreBrowser } from "@/components/store-browser";
@@ -28,39 +29,14 @@ export default function MyStore() {
                             href="/my-store/upload"
                             className="btn btn-accent"
                         >
-                            <svg
-                                className="size-5"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth={2}
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                aria-hidden="true"
-                            >
-                                <title>Upload</title>
-                                <path d="M7 18a4 4 0 01-.5-7.97A6 6 0 0118 9a4 4 0 011 7.9M12 12v8m0-8l-3 3m3-3l3 3" />
-                            </svg>
+                            <IconCloudUpload size={20} aria-hidden="true" />
                             Image upload for 3D scan
                         </Link>
                         <Link
                             href="/help/3d-scan"
                             className="btn btn-ghost-outline"
                         >
-                            <svg
-                                className="size-5"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth={2}
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                aria-hidden="true"
-                            >
-                                <title>Help</title>
-                                <circle cx="12" cy="12" r="9" />
-                                <path d="M9.5 9.5a2.5 2.5 0 115 0c0 1.5-2.5 2-2.5 3.5M12 17h.01" />
-                            </svg>
+                            <IconHelpCircle size={20} aria-hidden="true" />
                             3D scan help
                         </Link>
                     </div>

@@ -1,3 +1,9 @@
+import {
+    IconCamera,
+    IconDotsVertical,
+    IconPlus,
+    IconUserFilled,
+} from "@tabler/icons-react";
 import Link from "next/link";
 import { Fragment, type ReactNode } from "react";
 
@@ -109,17 +115,10 @@ const tabs: { id: string; label: string; panel: ReactNode }[] = [
                                         className="btn btn-ghost btn-square btn-xs list-none shadow-none"
                                         aria-label={`More options for ${item.name}`}
                                     >
-                                        <svg
-                                            className="size-4"
-                                            viewBox="0 0 24 24"
-                                            fill="currentColor"
+                                        <IconDotsVertical
+                                            size={16}
                                             aria-hidden="true"
-                                        >
-                                            <title>More options</title>
-                                            <circle cx="12" cy="5" r="2" />
-                                            <circle cx="12" cy="12" r="2" />
-                                            <circle cx="12" cy="19" r="2" />
-                                        </svg>
+                                        />
                                     </summary>
                                     <ul className="menu dropdown-content z-10 w-44 rounded-box border-2 border-base-content bg-base-100 p-2">
                                         <li>
@@ -143,18 +142,7 @@ const tabs: { id: string; label: string; panel: ReactNode }[] = [
                         href="/my-store"
                         className="card aspect-square items-center justify-center border-2 border-dashed border-base-content/40 text-base-content/60 transition-colors hover:border-base-content hover:bg-base-200 hover:text-base-content"
                     >
-                        <svg
-                            className="size-10"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                            strokeLinecap="round"
-                            aria-hidden="true"
-                        >
-                            <title>Add</title>
-                            <path d="M12 4v16M4 12h16" />
-                        </svg>
+                        <IconPlus size={40} aria-hidden="true" />
                         <span className="mt-2 text-sm font-semibold tracking-widest uppercase">
                             Add item
                         </span>
@@ -192,35 +180,19 @@ export default function Profile() {
                 <section className="flex flex-wrap items-start gap-8 lg:flex-nowrap">
                     <div className="relative shrink-0">
                         <div className="grid size-40 place-items-center overflow-hidden rounded-3xl border-2 border-base-content bg-base-200 shadow-[6px_6px_0_var(--color-base-content)]">
-                            <svg
-                                className="size-28 opacity-40"
-                                viewBox="0 0 24 24"
-                                fill="currentColor"
+                            <IconUserFilled
+                                size={112}
+                                className="opacity-40"
                                 role="img"
-                            >
-                                <title>Default profile picture</title>
-                                <circle cx="12" cy="8" r="4.5" />
-                                <path d="M3.5 22c0-4.5 3.8-7 8.5-7s8.5 2.5 8.5 7z" />
-                            </svg>
+                                aria-label="Default profile picture"
+                            />
                         </div>
                         <Link
                             href="/profile/edit"
                             className="btn btn-primary btn-circle btn-sm absolute -right-2 -bottom-2"
                             aria-label="Change profile photo"
                         >
-                            <svg
-                                className="size-4"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth={2}
-                                strokeLinejoin="round"
-                                aria-hidden="true"
-                            >
-                                <title>Camera</title>
-                                <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
-                                <circle cx="12" cy="13" r="3.5" />
-                            </svg>
+                            <IconCamera size={16} aria-hidden="true" />
                         </Link>
                     </div>
 
