@@ -4,6 +4,7 @@ const PORT := 8080
 const SERVER_HOST := "localhost"
 const PLAYER_SCENE := preload("res://objects/player.tscn")
 const PLAYER_NODE_PREFIX := "Player_"
+const DEFAULT_SCENE := "res://maps/default.tscn"
 
 
 class PlayerSpawn:
@@ -18,8 +19,28 @@ var _pending_spawns: Array[PlayerSpawn] = []
 func _ready() -> void:
 	if OS.has_feature("dedicated_server"):
 		_start_server()
-	else:
+		call_deferred("_load_default_scene")
+
+
+func start_game() -> void:
+	if get_tree().current_scene.scene_file_path == DEFAULT_SCENE:
+		return
+
+	var error := get_tree().change_scene_to_file(DEFAULT_SCENE)
+	if error != OK:
+		push_error("Could not load default scene: %s" % error)
+		return
+
+	await get_tree().scene_changed
+
+	if multiplayer.multiplayer_peer is OfflineMultiplayerPeer:
 		_join_server()
+
+
+func _load_default_scene() -> void:
+	var error := get_tree().change_scene_to_file(DEFAULT_SCENE)
+	if error != OK:
+		push_error("Could not load default scene: %s" % error)
 
 
 func _join_server() -> void:
