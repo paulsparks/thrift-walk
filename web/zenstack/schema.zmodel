@@ -28,6 +28,7 @@ model User {
     stores        Store[]
     images        ImageAsset[]
     marketRequests MarketRequest[]
+    scanJobs      ScanJob[]
 
     @@map('user')
     @@allow('read', auth().id == id)
@@ -256,4 +257,31 @@ type MarketFrame {
     externalUrl String?
     imageAssetId String?
     storeName String
+}
+enum ScanStatus {
+    Pending
+    Processing
+    Completed
+    Failed
+}
+
+// A 3D scan: photos in, .glb out. Created by POST /api/scan, advanced by the
+// Python worker (worker/). There are deliberately no create/update policies:
+// clients can read their own jobs but only the server and the worker can write.
+model ScanJob {
+    id         String     @id @default(cuid())
+    name       String
+    status     ScanStatus @default(Pending)
+    progress   Int        @default(0)
+    // Paths relative to SCAN_STORAGE_DIR, e.g. "<jobId>/01.jpg"
+    imagePaths String[]
+    glbPath    String?
+    error      String?
+    ownerId    String
+    owner      User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+    createdAt  DateTime   @default(now())
+    updatedAt  DateTime   @default(now()) @updatedAt
+
+    @@map('scan_job')
+    @@allow('read', auth().id == ownerId)
 }

@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type Store = { id: string; name: string };
@@ -165,14 +166,28 @@ export function OwnerInventory({ name }: { name: string }) {
                         Your finds, ready for their next home.
                     </p>
                 </div>
-                <button
-                    type="button"
-                    className="btn btn-primary"
-                    disabled={busy || loading || stores.length >= 3}
-                    onClick={() => setCreating(!creating)}
-                >
-                    {creating ? "Cancel" : "New store"}
-                </button>
+                <div className="flex flex-wrap gap-3">
+                    <Link
+                        href="/my-store/upload"
+                        className="btn btn-ghost-outline"
+                    >
+                        Image upload for 3D scan
+                    </Link>
+                    <Link
+                        href="/help/3d-scan"
+                        className="btn btn-ghost-outline"
+                    >
+                        3D scan help
+                    </Link>
+                    <button
+                        type="button"
+                        className="btn btn-primary"
+                        disabled={busy || loading || stores.length >= 3}
+                        onClick={() => setCreating(!creating)}
+                    >
+                        {creating ? "Cancel" : "New store"}
+                    </button>
+                </div>
             </header>
             {error && (
                 <div role="alert" className="alert alert-error flex flex-wrap">
