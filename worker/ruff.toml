@@ -1,0 +1,9 @@
+target-version = "py312"
+# MASt3R is third-party code; don't lint or format it.
+extend-exclude = ["mast3r"]
+
+[lint]
+# E/F: pycodestyle and pyflakes, I: import sorting, UP: modern syntax, B: likely bugs
+select = ["E", "F", "I", "UP", "B"]
+# The formatter already handles line length.
+ignore = ["E501"]

@@ -1,21 +1,69 @@
 "use client";
 
-import { type ChangeEvent, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { type ChangeEvent, type SubmitEvent, useRef, useState } from "react";
 
-const MIN_PHOTOS = 5;
-const MAX_PHOTOS = 10;
+import {
+    SCAN_MAX_NAME_LENGTH,
+    SCAN_MAX_PHOTOS,
+    SCAN_MIN_PHOTOS,
+    SCAN_RECOMMENDED_MIN_PHOTOS,
+    SCANS_QUERY_KEY,
+} from "@/lib/scan-config";
 
 export function ScanDropzone() {
+    const queryClient = useQueryClient();
     const [files, setFiles] = useState<File[]>([]);
+    const [name, setName] = useState("");
+    const [uploading, setUploading] = useState(false);
+    const [error, setError] = useState<string>();
+    const [notice, setNotice] = useState<string>();
     const inputRef = useRef<HTMLInputElement>(null);
 
     function onChange(e: ChangeEvent<HTMLInputElement>) {
         setFiles(Array.from(e.target.files ?? []));
+        setError(undefined);
+        setNotice(undefined);
     }
 
     function clear() {
         setFiles([]);
+        setError(undefined);
         if (inputRef.current) inputRef.current.value = "";
+    }
+
+    async function onSubmit(e: SubmitEvent<HTMLFormElement>) {
+        e.preventDefault();
+        if (!canUpload) return;
+
+        setUploading(true);
+        setError(undefined);
+        setNotice(undefined);
+
+        const body = new FormData();
+        body.set("name", name.trim());
+        for (const file of files) body.append("photos", file);
+
+        try {
+            const res = await fetch("/api/scan", { method: "POST", body });
+            if (!res.ok) {
+                const data = (await res.json().catch(() => null)) as {
+                    error?: string;
+                } | null;
+                setError(data?.error ?? "Upload failed. Please try again.");
+                return;
+            }
+
+            clear();
+            setName("");
+            setNotice("Upload received. Your scan is in the queue.");
+            // Show the new job in the list below right away.
+            await queryClient.invalidateQueries({ queryKey: SCANS_QUERY_KEY });
+        } catch {
+            setError("Upload failed. Check your connection and try again.");
+        } finally {
+            setUploading(false);
+        }
     }
 
     const totalMb = (
@@ -25,10 +73,14 @@ export function ScanDropzone() {
     ).toFixed(1);
     const outOfRange =
         files.length > 0 &&
-        (files.length < MIN_PHOTOS || files.length > MAX_PHOTOS);
+        (files.length < SCAN_MIN_PHOTOS || files.length > SCAN_MAX_PHOTOS);
+    const belowRecommended =
+        files.length >= SCAN_MIN_PHOTOS &&
+        files.length < SCAN_RECOMMENDED_MIN_PHOTOS;
+    const canUpload = !outOfRange && files.length > 0 && name.trim().length > 0;
 
     return (
-        <div>
+        <form onSubmit={onSubmit}>
             <div className="relative flex flex-col items-center rounded-box border-2 border-dashed border-base-content/50 bg-base-200 px-6 py-14 text-center transition-colors hover:bg-base-300/50 has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-4 has-[:focus-visible]:outline-accent">
                 <input
                     ref={inputRef}
@@ -39,6 +91,7 @@ export function ScanDropzone() {
                     title=""
                     className="absolute inset-0 size-full cursor-pointer opacity-0"
                     onChange={onChange}
+                    disabled={uploading}
                 />
                 <div className="grid size-20 place-items-center rounded-full bg-base-300">
                     <svg
@@ -59,8 +112,8 @@ export function ScanDropzone() {
                     Drag and drop images
                 </h2>
                 <p className="mt-2 opacity-80">
-                    Upload {MIN_PHOTOS}-{MAX_PHOTOS} photos from different
-                    angles for best results.
+                    Upload {SCAN_RECOMMENDED_MIN_PHOTOS}-{SCAN_MAX_PHOTOS}{" "}
+                    photos from different angles for best results.
                 </p>
                 <span className="btn btn-primary btn-lg mt-6">
                     Select files
@@ -69,6 +122,10 @@ export function ScanDropzone() {
                     Supported formats: JPG, PNG, HEIC
                 </p>
             </div>
+
+            {notice && (
+                <output className="alert alert-success mt-4">{notice}</output>
+            )}
 
             {files.length > 0 && (
                 <div className="mt-4 rounded-box border-2 border-base-content bg-base-100 p-5">
@@ -82,14 +139,21 @@ export function ScanDropzone() {
                             type="button"
                             className="btn btn-ghost-outline btn-sm"
                             onClick={clear}
+                            disabled={uploading}
                         >
                             Clear
                         </button>
                     </div>
                     {outOfRange && (
+                        <p className="mt-2 text-sm font-semibold">
+                            Select {SCAN_MIN_PHOTOS}-{SCAN_MAX_PHOTOS} photos to
+                            start a scan.
+                        </p>
+                    )}
+                    {belowRecommended && (
                         <p className="mt-2 text-sm opacity-80">
-                            Best results come from {MIN_PHOTOS}-{MAX_PHOTOS}{" "}
-                            photos.
+                            Best results come from {SCAN_RECOMMENDED_MIN_PHOTOS}
+                            -{SCAN_MAX_PHOTOS} photos.
                         </p>
                     )}
                     <ul className="mt-3 flex flex-wrap gap-2 text-sm">
@@ -107,8 +171,40 @@ export function ScanDropzone() {
                             </li>
                         )}
                     </ul>
+
+                    <label className="fieldset mt-4">
+                        <span className="fieldset-legend">Item name</span>
+                        <input
+                            type="text"
+                            name="name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder="e.g. Vintage denim jacket"
+                            maxLength={SCAN_MAX_NAME_LENGTH}
+                            className="input input-neutral w-full"
+                            disabled={uploading}
+                            required
+                        />
+                    </label>
+
+                    {error && (
+                        <div role="alert" className="alert alert-error mt-4">
+                            <span>{error}</span>
+                        </div>
+                    )}
+
+                    <button
+                        type="submit"
+                        className="btn btn-primary mt-4"
+                        disabled={!canUpload || uploading}
+                    >
+                        {uploading && (
+                            <span className="loading loading-spinner" />
+                        )}
+                        Start 3D scan
+                    </button>
                 </div>
             )}
-        </div>
+        </form>
     );
 }

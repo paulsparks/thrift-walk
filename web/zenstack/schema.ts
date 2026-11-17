@@ -138,6 +138,12 @@ export class SchemaType implements SchemaDef {
                     array: true,
                     relation: { opposite: "user" },
                 },
+                scanJobs: {
+                    name: "scanJobs",
+                    type: "ScanJob",
+                    array: true,
+                    relation: { opposite: "owner" },
+                },
             },
             attributes: [
                 {
@@ -810,6 +816,187 @@ export class SchemaType implements SchemaDef {
                 },
             },
         },
+        ScanJob: {
+            name: "ScanJob",
+            fields: {
+                id: {
+                    name: "id",
+                    type: "String",
+                    id: true,
+                    attributes: [
+                        { name: "@id" },
+                        {
+                            name: "@default",
+                            args: [
+                                {
+                                    name: "value",
+                                    value: ExpressionUtils.call("cuid"),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    default: ExpressionUtils.call("cuid") as FieldDefault,
+                },
+                name: {
+                    name: "name",
+                    type: "String",
+                },
+                status: {
+                    name: "status",
+                    type: "ScanStatus",
+                    attributes: [
+                        {
+                            name: "@default",
+                            args: [
+                                {
+                                    name: "value",
+                                    value: ExpressionUtils.literal("Pending"),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    default: "Pending" as FieldDefault,
+                },
+                progress: {
+                    name: "progress",
+                    type: "Int",
+                    attributes: [
+                        {
+                            name: "@default",
+                            args: [
+                                {
+                                    name: "value",
+                                    value: ExpressionUtils.literal(0),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    default: 0 as FieldDefault,
+                },
+                imagePaths: {
+                    name: "imagePaths",
+                    type: "String",
+                    array: true,
+                },
+                glbPath: {
+                    name: "glbPath",
+                    type: "String",
+                    optional: true,
+                },
+                error: {
+                    name: "error",
+                    type: "String",
+                    optional: true,
+                },
+                ownerId: {
+                    name: "ownerId",
+                    type: "String",
+                    foreignKeyFor: ["owner"] as readonly string[],
+                },
+                owner: {
+                    name: "owner",
+                    type: "User",
+                    attributes: [
+                        {
+                            name: "@relation",
+                            args: [
+                                {
+                                    name: "fields",
+                                    value: ExpressionUtils.array("String", [
+                                        ExpressionUtils.field("ownerId"),
+                                    ]),
+                                },
+                                {
+                                    name: "references",
+                                    value: ExpressionUtils.array("String", [
+                                        ExpressionUtils.field("id"),
+                                    ]),
+                                },
+                                {
+                                    name: "onDelete",
+                                    value: ExpressionUtils.literal("Cascade"),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    relation: {
+                        opposite: "scanJobs",
+                        fields: ["ownerId"],
+                        references: ["id"],
+                        onDelete: "Cascade",
+                    },
+                },
+                createdAt: {
+                    name: "createdAt",
+                    type: "DateTime",
+                    attributes: [
+                        {
+                            name: "@default",
+                            args: [
+                                {
+                                    name: "value",
+                                    value: ExpressionUtils.call("now"),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    default: ExpressionUtils.call("now") as FieldDefault,
+                },
+                updatedAt: {
+                    name: "updatedAt",
+                    type: "DateTime",
+                    updatedAt: true,
+                    attributes: [
+                        {
+                            name: "@default",
+                            args: [
+                                {
+                                    name: "value",
+                                    value: ExpressionUtils.call("now"),
+                                },
+                            ],
+                        },
+                        { name: "@updatedAt" },
+                    ] as readonly AttributeApplication[],
+                    default: ExpressionUtils.call("now") as FieldDefault,
+                },
+            },
+            attributes: [
+                {
+                    name: "@@map",
+                    args: [
+                        {
+                            name: "name",
+                            value: ExpressionUtils.literal("scan_job"),
+                        },
+                    ],
+                },
+                {
+                    name: "@@allow",
+                    args: [
+                        {
+                            name: "operation",
+                            value: ExpressionUtils.literal("read"),
+                        },
+                        {
+                            name: "condition",
+                            value: ExpressionUtils.binary(
+                                ExpressionUtils.member(
+                                    ExpressionUtils.call("auth"),
+                                    ["id"],
+                                ),
+                                "==",
+                                ExpressionUtils.field("ownerId"),
+                            ),
+                        },
+                    ],
+                },
+            ] as readonly AttributeApplication[],
+            idFields: ["id"],
+            uniqueFields: {
+                id: { type: "String" },
+            },
+        },
     } as const;
     enums = {
         Role: {
@@ -817,6 +1004,15 @@ export class SchemaType implements SchemaDef {
             values: {
                 User: "User",
                 Admin: "Admin",
+            },
+        },
+        ScanStatus: {
+            name: "ScanStatus",
+            values: {
+                Pending: "Pending",
+                Processing: "Processing",
+                Completed: "Completed",
+                Failed: "Failed",
             },
         },
     } as const;

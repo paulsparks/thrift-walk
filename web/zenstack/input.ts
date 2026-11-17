@@ -300,3 +300,43 @@ export type WishlistItemGetPayload<
     Args extends $SelectIncludeOmit<$Schema, "WishlistItem", true>,
     Options extends $QueryOptions<$Schema> = $QueryOptions<$Schema>,
 > = $Result<$Schema, "WishlistItem", Args, Options>;
+export type ScanJobFindManyArgs = $FindManyArgs<$Schema, "ScanJob">;
+export type ScanJobFindUniqueArgs = $FindUniqueArgs<$Schema, "ScanJob">;
+export type ScanJobFindFirstArgs = $FindFirstArgs<$Schema, "ScanJob">;
+export type ScanJobExistsArgs = $ExistsArgs<$Schema, "ScanJob">;
+export type ScanJobCreateArgs = $CreateArgs<$Schema, "ScanJob">;
+export type ScanJobCreateManyArgs = $CreateManyArgs<$Schema, "ScanJob">;
+export type ScanJobCreateManyAndReturnArgs = $CreateManyAndReturnArgs<
+    $Schema,
+    "ScanJob"
+>;
+export type ScanJobUpdateArgs = $UpdateArgs<$Schema, "ScanJob">;
+export type ScanJobUpdateManyArgs = $UpdateManyArgs<$Schema, "ScanJob">;
+export type ScanJobUpdateManyAndReturnArgs = $UpdateManyAndReturnArgs<
+    $Schema,
+    "ScanJob"
+>;
+export type ScanJobUpsertArgs = $UpsertArgs<$Schema, "ScanJob">;
+export type ScanJobDeleteArgs = $DeleteArgs<$Schema, "ScanJob">;
+export type ScanJobDeleteManyArgs = $DeleteManyArgs<$Schema, "ScanJob">;
+export type ScanJobCountArgs = $CountArgs<$Schema, "ScanJob">;
+export type ScanJobAggregateArgs = $AggregateArgs<$Schema, "ScanJob">;
+export type ScanJobGroupByArgs = $GroupByArgs<$Schema, "ScanJob">;
+export type ScanJobWhereInput = $WhereInput<$Schema, "ScanJob">;
+export type ScanJobSelect = $SelectInput<$Schema, "ScanJob">;
+export type ScanJobInclude = $IncludeInput<$Schema, "ScanJob">;
+export type ScanJobOmit = $OmitInput<$Schema, "ScanJob">;
+export type ScanJobUncheckedCreateInput = $UncheckedCreateInput<
+    $Schema,
+    "ScanJob"
+>;
+export type ScanJobCheckedCreateInput = $CheckedCreateInput<$Schema, "ScanJob">;
+export type ScanJobUncheckedUpdateInput = $UncheckedUpdateInput<
+    $Schema,
+    "ScanJob"
+>;
+export type ScanJobCheckedUpdateInput = $CheckedUpdateInput<$Schema, "ScanJob">;
+export type ScanJobGetPayload<
+    Args extends $SelectIncludeOmit<$Schema, "ScanJob", true>,
+    Options extends $QueryOptions<$Schema> = $QueryOptions<$Schema>,
+> = $Result<$Schema, "ScanJob", Args, Options>;
