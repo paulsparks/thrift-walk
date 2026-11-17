@@ -1,7 +1,8 @@
 [gd_scene format=3 uid="uid://bxrbp8ga2qjpb"]
 
 [ext_resource type="Texture2D" uid="uid://c2jxch7yhm4li" path="res://resources/textures/ground.JPG" id="2_t67o2"]
-[ext_resource type="Shader" uid="uid://dnj7i0yl0wuds" path="res://skybox-night.tres" id="2_yxxav"]
+[ext_resource type="Texture2D" uid="uid://1btvyl6spmwd" path="res://resources/textures/skybox-night.png" id="2_skybox"]
+[ext_resource type="Shader" uid="uid://dnj7i0yl0wuds" path="res://resources/shaders/skybox-night.tres" id="2_yxxav"]
 [ext_resource type="Script" uid="uid://dpxthq3t8gkgy" path="res://scripts/interactive/cube_test.gd" id="3_na5r1"]
 [ext_resource type="Script" uid="uid://c7ej3prijlyh" path="res://scripts/interactive/interact_component.gd" id="4_na5r1"]
 
@@ -15,12 +16,9 @@ size = Vector3(50, 0.5, 50)
 albedo_texture = ExtResource("2_t67o2")
 uv1_scale = Vector3(20, 20, 20)
 
-[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_t67o2"]
-load_path = "res://.godot/imported/skybox-night.png-aaeba350eab799293049cfdd3101348d.s3tc.ctex"
-
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_g52r6"]
 shader = ExtResource("2_yxxav")
-shader_parameter/tex = SubResource("CompressedTexture2D_t67o2")
+shader_parameter/tex = ExtResource("2_skybox")
 
 [sub_resource type="Sky" id="Sky_w6vpw"]
 resource_local_to_scene = true

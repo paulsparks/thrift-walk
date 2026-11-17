@@ -54,10 +54,11 @@ func update_head_bob(delta: float, velocity: Vector3, grounded: bool) -> void:
 
 
 func get_raycast(world: World3D, viewport: Viewport) -> Dictionary:
-	var mousepos := viewport.get_mouse_position()
+	var mousepos := viewport.get_visible_rect().get_center()
 	var origin := _camera.project_ray_origin(mousepos)
-	var end := origin + _camera.project_ray_normal(mousepos) * REACH_DISTANCE
-	var hold_pos := origin + _camera.project_ray_normal(mousepos) * REACH_DISTANCE / 2.5
+	var ray_normal := _camera.project_ray_normal(mousepos)
+	var end := origin + ray_normal * REACH_DISTANCE
+	var hold_pos := origin + ray_normal * REACH_DISTANCE / 2.5
 	var query := PhysicsRayQueryParameters3D.create(origin, end, 2)
 	var result := world.direct_space_state.intersect_ray(query)
 	return {"collider": result.get("collider"), "hold_pos": hold_pos}

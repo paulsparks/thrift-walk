@@ -1,0 +1,269 @@
+[gd_scene format=3 uid="uid://ba3x4t1pfxjnt"]
+
+[ext_resource type="PackedScene" uid="uid://beu5r0ws677b4" path="res://resources/models/demo_store/Tiny Store.fbx" id="1_grmdr"]
+[ext_resource type="Script" uid="uid://dpxthq3t8gkgy" path="res://scripts/interactive/cube_test.gd" id="2_2cn3r"]
+[ext_resource type="Shader" uid="uid://dnj7i0yl0wuds" path="res://resources/shaders/skybox-night.tres" id="2_fmffy"]
+[ext_resource type="Texture2D" uid="uid://1btvyl6spmwd" path="res://resources/textures/skybox-night.png" id="2_skybox"]
+[ext_resource type="Script" uid="uid://c7ej3prijlyh" path="res://scripts/interactive/interact_component.gd" id="3_0lquw"]
+[ext_resource type="PackedScene" uid="uid://3au548inor5b" path="res://resources/models/city/city.fbx" id="3_iq8gy"]
+[ext_resource type="Texture2D" uid="uid://c2jxch7yhm4li" path="res://resources/textures/ground.JPG" id="4_1fv73"]
+[ext_resource type="PackedScene" uid="uid://2pumg07aiwbl" path="res://resources/models/barricade/Concrete+Barricade.fbx" id="8_lrkhj"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_dadqq"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_i8p4n"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dadqq"]
+albedo_color = Color(1, 0, 0, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_lrkhj"]
+size = Vector3(21, 1, 17)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_fmffy"]
+size = Vector3(1, 10, 17)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_1fv73"]
+shader = ExtResource("2_fmffy")
+shader_parameter/tex = ExtResource("2_skybox")
+
+[sub_resource type="Sky" id="Sky_j4veh"]
+resource_local_to_scene = true
+sky_material = SubResource("ShaderMaterial_1fv73")
+
+[sub_resource type="Environment" id="Environment_2cn3r"]
+background_mode = 2
+sky = SubResource("Sky_j4veh")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_i8p4n"]
+shading_mode = 2
+diffuse_mode = 2
+albedo_texture = ExtResource("4_1fv73")
+uv1_scale = Vector3(50, 50, 50)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_dadqq"]
+material = SubResource("StandardMaterial3D_i8p4n")
+size = Vector2(500, 500)
+
+[node name="DemoStore" type="Node3D" unique_id=1366019686]
+
+[node name="Map" type="Node" parent="." unique_id=1804826337]
+
+[node name="Tiny Store" parent="Map" unique_id=1466866203 instance=ExtResource("1_grmdr")]
+transform = Transform3D(-1.5, 0, 1.3113416e-07, 0, 1.5, 0, -1.3113416e-07, 0, -1.5, 3.021389, 0, 0.18271637)
+
+[node name="StaticBody3D" type="StaticBody3D" parent="Map" unique_id=1230675485]
+transform = Transform3D(-1.5, 0, 1.3113416e-07, 0, 1.5, 0, -1.3113416e-07, 0, -1.5, 3.0213888, 1.5747533, 2.147684)
+collision_layer = 3
+script = ExtResource("2_2cn3r")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Map/StaticBody3D" unique_id=300275241]
+shape = SubResource("BoxShape3D_dadqq")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Map/StaticBody3D" unique_id=79892921]
+mesh = SubResource("BoxMesh_i8p4n")
+surface_material_override/0 = SubResource("StandardMaterial3D_dadqq")
+
+[node name="InteractComponent" type="Node" parent="Map/StaticBody3D" unique_id=1152049099]
+script = ExtResource("3_0lquw")
+tooltip = "Change color"
+
+[node name="Floor" type="StaticBody3D" parent="Map" unique_id=554020411]
+transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, 2.9824524, 0, 0.18271637)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Map/Floor" unique_id=92774875]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -0.5, 0)
+shape = SubResource("BoxShape3D_lrkhj")
+
+[node name="Wall1" type="StaticBody3D" parent="Map" unique_id=1492041954]
+transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, 6.013191, 3, 0.18271637)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Map/Wall1" unique_id=1457611459]
+shape = SubResource("BoxShape3D_fmffy")
+
+[node name="Wall4" type="StaticBody3D" parent="Map" unique_id=1748137766]
+transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, -9.278236, 3, 0.18271255)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Map/Wall4" unique_id=301592565]
+shape = SubResource("BoxShape3D_fmffy")
+
+[node name="Wall2" type="StaticBody3D" parent="Map" unique_id=908809532]
+transform = Transform3D(1.3113416e-07, 0, 1, 0, 1, 0, -1, 0, 1.3113416e-07, -0.780426, 3, 7.903351)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Map/Wall2" unique_id=19438730]
+shape = SubResource("BoxShape3D_fmffy")
+
+[node name="Wall3" type="StaticBody3D" parent="Map" unique_id=393714423]
+transform = Transform3D(1.3113416e-07, 0, 1, 0, 1, 0, -1, 0, 1.3113416e-07, -0.7804184, 3, -7.5417385)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Map/Wall3" unique_id=531219689]
+shape = SubResource("BoxShape3D_fmffy")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="Map" unique_id=564435466]
+environment = SubResource("Environment_2cn3r")
+
+[node name="AreaLight3D" type="AreaLight3D" parent="Map" unique_id=1297244707]
+transform = Transform3D(-1, -8.742278e-08, -3.821371e-15, 0, -4.371139e-08, 1, -8.742278e-08, 1, 4.371139e-08, -2.0429, 7.4126735, 0.18271255)
+light_indirect_energy = 5.0
+light_specular = 10.0
+area_range = 61.635
+area_size = Vector2(37.276714, 5.5363917)
+
+[node name="city" parent="Map" unique_id=259156644 instance=ExtResource("3_iq8gy")]
+transform = Transform3D(-6.556708e-06, 0, -149.99998, 0, 149.99998, 0, 149.99998, 0, -6.556708e-06, -190.27115, -8.485, -7.0818634)
+
+[node name="city2" parent="Map" unique_id=384194986 instance=ExtResource("3_iq8gy")]
+transform = Transform3D(-6.556708e-06, 0, -149.99998, 0, 149.99998, 0, 149.99998, 0, -6.556708e-06, -190.27113, -8.485, -165.14458)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Map" unique_id=1132726704]
+transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, -2.290924, -0.0727545, -3.3933487)
+mesh = SubResource("PlaneMesh_dadqq")
+
+[node name="Concrete+Barricade" parent="Map" unique_id=591168082 instance=ExtResource("8_lrkhj")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -13.829064, -0.11643314, -0.7636409)
+
+[node name="Concrete+Barricade2" parent="Map" unique_id=1700765410 instance=ExtResource("8_lrkhj")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -13.829064, -0.11643314, 2.6428368)
+
+[node name="Concrete+Barricade3" parent="Map" unique_id=431330519 instance=ExtResource("8_lrkhj")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -13.829064, -0.11643314, 6.0271425)
+
+[node name="Concrete+Barricade4" parent="Map" unique_id=1830100513 instance=ExtResource("8_lrkhj")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -13.829064, -0.11643314, 9.4585085)
+
+[node name="Concrete+Barricade5" parent="Map" unique_id=169280911 instance=ExtResource("8_lrkhj")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -13.829064, -0.11643314, -4.1625338)
+
+[node name="Concrete+Barricade6" parent="Map" unique_id=1287066497 instance=ExtResource("8_lrkhj")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -13.829064, -0.11643314, -7.5803204)
+
+[node name="Concrete+Barricade7" parent="Map" unique_id=1796634376 instance=ExtResource("8_lrkhj")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -13.829064, -0.11643314, 19.671387)
+
+[node name="Concrete+Barricade8" parent="Map" unique_id=1825628551 instance=ExtResource("8_lrkhj")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -13.829064, -0.11643314, 23.077866)
+
+[node name="Concrete+Barricade9" parent="Map" unique_id=2064365501 instance=ExtResource("8_lrkhj")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -13.829064, -0.11643314, 26.462172)
+
+[node name="Concrete+Barricade10" parent="Map" unique_id=1726754445 instance=ExtResource("8_lrkhj")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -13.829064, -0.11643314, 29.893538)
+
+[node name="Concrete+Barricade11" parent="Map" unique_id=1016791097 instance=ExtResource("8_lrkhj")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -13.829064, -0.11643314, 16.272495)
+
+[node name="Concrete+Barricade12" parent="Map" unique_id=1807521265 instance=ExtResource("8_lrkhj")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -13.829064, -0.11643314, 12.854708)
+
+[node name="Concrete+Barricade13" parent="Map" unique_id=1389519734 instance=ExtResource("8_lrkhj")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -13.829064, -0.11643314, -21.247486)
+
+[node name="Concrete+Barricade14" parent="Map" unique_id=1407091108 instance=ExtResource("8_lrkhj")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -13.829064, -0.11643314, -17.841007)
+
+[node name="Concrete+Barricade15" parent="Map" unique_id=1751545247 instance=ExtResource("8_lrkhj")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -13.829064, -0.11643314, -14.456701)
+
+[node name="Concrete+Barricade16" parent="Map" unique_id=1945473133 instance=ExtResource("8_lrkhj")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -13.829064, -0.11643314, -11.025335)
+
+[node name="Concrete+Barricade17" parent="Map" unique_id=2127919985 instance=ExtResource("8_lrkhj")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -13.829064, -0.11643314, -24.646378)
+
+[node name="Concrete+Barricade18" parent="Map" unique_id=1835866590 instance=ExtResource("8_lrkhj")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -13.829064, -0.11643314, -28.064163)
+
+[node name="OmniLight3D" type="OmniLight3D" parent="Map" unique_id=2080410415]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.1405993, 4.396376, -1.7809459)
+light_energy = 0.2
+omni_range = 9.702
+omni_attenuation = 0.193
+
+[node name="OmniLight3D2" type="OmniLight3D" parent="Map" unique_id=1051963407]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.9439325, 4.396376, -1.7809459)
+light_energy = 0.2
+omni_range = 9.702
+omni_attenuation = 0.193
+
+[node name="OmniLight3D3" type="OmniLight3D" parent="Map" unique_id=1978163272]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.62906456, 4.396376, -1.7809459)
+light_energy = 0.2
+omni_range = 9.702
+omni_attenuation = 0.193
+
+[node name="OmniLight3D4" type="OmniLight3D" parent="Map" unique_id=1668834806]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.544353, 4.396376, -1.7809459)
+light_energy = 0.2
+omni_range = 9.702
+omni_attenuation = 0.193
+
+[node name="OmniLight3D5" type="OmniLight3D" parent="Map" unique_id=327635514]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.8206182, 4.396376, -1.7809459)
+light_energy = 0.2
+omni_range = 9.702
+omni_attenuation = 0.193
+
+[node name="OmniLight3D6" type="OmniLight3D" parent="Map" unique_id=1579943470]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.0911484, 4.396376, -1.7809459)
+light_energy = 0.2
+omni_range = 9.702
+omni_attenuation = 0.193
+
+[node name="OmniLight3D7" type="OmniLight3D" parent="Map" unique_id=1183755402]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.339975, 4.396376, -1.7809459)
+light_energy = 0.2
+omni_range = 9.702
+omni_attenuation = 0.193
+
+[node name="OmniLight3D8" type="OmniLight3D" parent="Map" unique_id=1173695447]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.339975, 4.396376, -1.7809459)
+light_energy = 0.2
+omni_range = 9.702
+omni_attenuation = 0.193
+
+[node name="OmniLight3D9" type="OmniLight3D" parent="Map" unique_id=804744532]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.1405993, 4.396376, 2.205058)
+light_energy = 0.2
+omni_range = 9.702
+omni_attenuation = 0.193
+
+[node name="OmniLight3D10" type="OmniLight3D" parent="Map" unique_id=285181552]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.9439325, 4.396376, 2.205058)
+light_energy = 0.2
+omni_range = 9.702
+omni_attenuation = 0.193
+
+[node name="OmniLight3D11" type="OmniLight3D" parent="Map" unique_id=2117685611]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.62906456, 4.396376, 2.205058)
+light_energy = 0.2
+omni_range = 9.702
+omni_attenuation = 0.193
+
+[node name="OmniLight3D12" type="OmniLight3D" parent="Map" unique_id=381235243]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.544353, 4.396376, 2.205058)
+light_energy = 0.2
+omni_range = 9.702
+omni_attenuation = 0.193
+
+[node name="OmniLight3D13" type="OmniLight3D" parent="Map" unique_id=1069186997]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.8206182, 4.396376, 2.205058)
+light_energy = 0.2
+omni_range = 9.702
+omni_attenuation = 0.193
+
+[node name="OmniLight3D14" type="OmniLight3D" parent="Map" unique_id=543970857]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.0911484, 4.396376, 2.205058)
+light_energy = 0.2
+omni_range = 9.702
+omni_attenuation = 0.193
+
+[node name="OmniLight3D15" type="OmniLight3D" parent="Map" unique_id=897196013]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.339975, 4.396376, 2.205058)
+light_energy = 0.2
+omni_range = 9.702
+omni_attenuation = 0.193
+
+[node name="OmniLight3D16" type="OmniLight3D" parent="Map" unique_id=1962565519]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.339975, 4.396376, 2.205058)
+light_energy = 0.2
+omni_range = 9.702
+omni_attenuation = 0.193
