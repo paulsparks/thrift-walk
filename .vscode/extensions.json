@@ -7,6 +7,7 @@
         "TypeScriptTeam.native-preview",
         "biomejs.biome",
         "datakurre.devenv",
-        "zenstack.zenstack-v3"
+        "zenstack.zenstack-v3",
+        "charliermarsh.ruff"
     ]
 }

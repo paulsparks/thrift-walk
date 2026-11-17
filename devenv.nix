@@ -18,6 +18,7 @@
     prisma-engines_6
     biome
     lefthook
+    ruff
 
     # Native libraries that pip-installed PyTorch / Open3D wheels expect.
     # Without these, importing them on Nix/WSL fails with
@@ -47,8 +48,7 @@
         pkgs.libusb1
         pkgs.libidn2
         pkgs.tbb
-      ])
-      + ":/usr/lib/wsl/lib";
+      ]);
 
     PRISMA_SCHEMA_ENGINE_BINARY = "${pkgs.prisma-engines_6}/bin/schema-engine";
 
@@ -134,6 +134,10 @@
   };
 
   enterShell = ''
+     # WSL exposes the Windows GPU driver here; real Linux doesn't have this folder.
+    if [ -d /usr/lib/wsl/lib ]; then
+      export LD_LIBRARY_PATH="''${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}/usr/lib/wsl/lib"
+    fi
     lefthook install
     motd
   '';

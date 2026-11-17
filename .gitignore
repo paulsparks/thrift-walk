@@ -34,3 +34,7 @@ worker/mast3r/
 worker/.venv/
 __pycache__/
 *.pth
+.ruff_cache/
+
+# Installed JavaScript dependencies
+node_modules/

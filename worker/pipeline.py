@@ -120,7 +120,9 @@ def load_model(device: str):
         _import_mast3r()
         from mast3r.model import AsymmetricMASt3R
 
-        log.info("Loading %s on %s (first run downloads the weights)...", MODEL_NAME, device)
+        log.info(
+            "Loading %s on %s (first run downloads the weights)...", MODEL_NAME, device
+        )
         _model = AsymmetricMASt3R.from_pretrained(MODEL_NAME).to(device)
         _model.eval()
     return _model
@@ -383,9 +385,13 @@ def _smooth_vertices(
     from scipy import sparse
 
     n = len(vertices)
-    a = np.concatenate([triangles[:, 0], triangles[:, 1], triangles[:, 2]] * 2)
-    b = np.concatenate([triangles[:, 1], triangles[:, 2], triangles[:, 0],
-                        triangles[:, 0], triangles[:, 1], triangles[:, 2]])
+    edges = np.concatenate(
+        [triangles[:, [0, 1]], triangles[:, [1, 2]], triangles[:, [2, 0]]]
+    )
+    # Each edge in both directions, so neighbours are symmetric (this also
+    # covers open boundaries, where only one triangle has the edge).
+    a = np.concatenate([edges[:, 0], edges[:, 1]])
+    b = np.concatenate([edges[:, 1], edges[:, 0]])
     adjacency = sparse.coo_matrix((np.ones(len(a)), (a, b)), shape=(n, n)).tocsr()
     adjacency.data[:] = 1.0  # an edge shared by two triangles was counted twice
     degree = np.maximum(np.asarray(adjacency.sum(axis=1)).ravel(), 1.0)
@@ -473,7 +479,9 @@ def build_mesh(
     seen = np.asarray(pcd.points)
     margin = voxel * 3
     mesh = mesh.crop(
-        o3d.geometry.AxisAlignedBoundingBox(seen.min(axis=0) - margin, seen.max(axis=0) + margin)
+        o3d.geometry.AxisAlignedBoundingBox(
+            seen.min(axis=0) - margin, seen.max(axis=0) + margin
+        )
     )
     clusters, sizes, _ = mesh.cluster_connected_triangles()
     clusters, sizes = np.asarray(clusters), np.asarray(sizes)
@@ -489,7 +497,9 @@ def build_mesh(
         mesh = mesh.filter_smooth_taubin(number_of_iterations=SMOOTH_ITERATIONS)
 
     if len(mesh.triangles) > TARGET_TRIANGLES:
-        log.info("Decimating %d -> %d triangles...", len(mesh.triangles), TARGET_TRIANGLES)
+        log.info(
+            "Decimating %d -> %d triangles...", len(mesh.triangles), TARGET_TRIANGLES
+        )
         mesh = mesh.simplify_quadric_decimation(
             target_number_of_triangles=TARGET_TRIANGLES
         )

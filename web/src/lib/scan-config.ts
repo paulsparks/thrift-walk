@@ -5,9 +5,19 @@
 
 /** Hard limits enforced by POST /api/scan. */
 export const SCAN_MIN_PHOTOS = 3;
-export const SCAN_MAX_PHOTOS = 10;
-export const SCAN_MAX_PHOTO_BYTES = 25 * 1024 * 1024;
+export const SCAN_MAX_PHOTOS = 50;
+// 10 photos at this size is exactly the 100 MB proxyClientMaxBodySize in
+// next.config.ts, so a maximum upload is never silently truncated.
+export const SCAN_MAX_PHOTO_BYTES = 10 * 1024 * 1024;
 export const SCAN_MAX_NAME_LENGTH = 80;
+
+/**
+ * Admission limits, checked by POST /api/scan before anything is saved.
+ * Photos are deleted once a scan finishes, so only active scans hold much disk.
+ */
+export const SCAN_MAX_ACTIVE_PER_USER = 2; // waiting or being processed
+export const SCAN_MAX_QUEUED_TOTAL = 20; // across all users (one worker)
+export const SCAN_MAX_STORED_PER_USER = 20; // scans a user can keep
 
 /** What the UI recommends for good results (not enforced). */
 export const SCAN_RECOMMENDED_MIN_PHOTOS = 5;

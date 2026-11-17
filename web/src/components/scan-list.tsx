@@ -1,7 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
     isScanActive,
@@ -10,21 +9,22 @@ import {
     type ScanSummary,
 } from "@/lib/scan-config";
 
-const DISMISSED_KEY = "dismissed-scans";
-
-function loadDismissed(): string[] {
-    try {
-        return JSON.parse(localStorage.getItem(DISMISSED_KEY) ?? "[]");
-    } catch {
-        return []; // storage unavailable or corrupt: show everything
-    }
-}
-
 async function fetchScans(): Promise<ScanSummary[]> {
     const res = await fetch("/api/scan");
     if (!res.ok) throw new Error("Could not load your scans.");
     const data = (await res.json()) as { scans: ScanSummary[] };
     return data.scans;
+}
+
+async function deleteScan(id: string): Promise<void> {
+    const res = await fetch(`/api/scan/${id}`, { method: "DELETE" });
+    // 404 means it is already gone, which is what the user wanted.
+    if (!res.ok && res.status !== 404) {
+        const data = (await res.json().catch(() => null)) as {
+            error?: string;
+        } | null;
+        throw new Error(data?.error ?? "Could not delete that scan.");
+    }
 }
 
 const STATUS_DISPLAY: Record<ScanStatus, { label: string; bar: string }> = {
@@ -35,6 +35,7 @@ const STATUS_DISPLAY: Record<ScanStatus, { label: string; bar: string }> = {
 };
 
 export function ScanList() {
+    const queryClient = useQueryClient();
     const {
         data: scans,
         error,
@@ -49,23 +50,20 @@ export function ScanList() {
                 : false,
     });
 
-    // Dismissed scans are hidden in this browser only; nothing is deleted.
-    const [dismissed, setDismissed] = useState<string[]>([]);
-    useEffect(() => setDismissed(loadDismissed()), []);
+    const remove = useMutation({
+        mutationFn: deleteScan,
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: SCANS_QUERY_KEY }),
+    });
 
-    function dismiss(id: string) {
-        const next = [...dismissed, id];
-        setDismissed(next);
-        try {
-            localStorage.setItem(DISMISSED_KEY, JSON.stringify(next));
-        } catch {
-            // still hidden for this session
+    function confirmDelete(scan: ScanSummary) {
+        if (window.confirm(`Permanently delete "${scan.name}"?`)) {
+            remove.mutate(scan.id);
         }
     }
 
-    const visible = scans?.filter((scan) => !dismissed.includes(scan.id));
     const activeCount =
-        visible?.filter((scan) => isScanActive(scan.status)).length ?? 0;
+        scans?.filter((scan) => isScanActive(scan.status)).length ?? 0;
 
     return (
         <section className="mt-12">
@@ -86,16 +84,22 @@ export function ScanList() {
                 </div>
             )}
 
-            {visible && visible.length === 0 && (
+            {remove.error && (
+                <div role="alert" className="alert alert-error mt-6">
+                    <span>{remove.error.message}</span>
+                </div>
+            )}
+
+            {scans && scans.length === 0 && (
                 <p className="mt-6 opacity-80">
                     No scans yet. Upload some photos above to create your first
                     3D model.
                 </p>
             )}
 
-            {visible && visible.length > 0 && (
+            {scans && scans.length > 0 && (
                 <ul className="mt-6 grid gap-4">
-                    {visible.map((scan) => {
+                    {scans.map((scan) => {
                         const display = STATUS_DISPLAY[scan.status];
 
                         return (
@@ -151,8 +155,9 @@ export function ScanList() {
                                     <button
                                         type="button"
                                         className="btn btn-ghost btn-square btn-sm"
-                                        aria-label={`Dismiss ${scan.name}`}
-                                        onClick={() => dismiss(scan.id)}
+                                        aria-label={`Delete ${scan.name}`}
+                                        disabled={remove.isPending}
+                                        onClick={() => confirmDelete(scan)}
                                     >
                                         ✕
                                     </button>
