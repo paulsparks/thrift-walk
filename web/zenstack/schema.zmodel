@@ -15,6 +15,7 @@ enum Role {
 model User {
     id            String         @id @default(cuid())
     name          String
+    bio           String         @default("")
     email         String         @unique
     emailVerified Boolean        @default(false)
     image         String?
@@ -24,6 +25,9 @@ model User {
     sessions      Session[]
     accounts      Account[]
     wishlist      WishlistItem[]
+    stores        Store[]
+    images        ImageAsset[]
+    marketRequests MarketRequest[]
 
     @@map('user')
     @@allow('read', auth().id == id)
@@ -39,6 +43,8 @@ model Session {
     userAgent String?
     userId    String
     user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    tickets GameTicket[]
 
     @@map('session')
 }
@@ -60,8 +66,8 @@ model Account {
     updatedAt             DateTime  @updatedAt
 
     @@map('account')
-    @@allow('read', auth().id == userId)
 }
+
 
 model Verification {
     id         String   @id
@@ -78,9 +84,16 @@ model Item {
     id         String         @id @default(cuid())
     name       String
     details    String
-    priceCents Int
+    priceCents Int?
     createdAt  DateTime       @default(now())
     wishlist   WishlistItem[]
+    updatedAt DateTime @default(now()) @updatedAt
+    storeId String?
+    store Store? @relation(fields: [storeId], references: [id], onDelete: Cascade)
+    imageAssetId String?
+    imageAsset ImageAsset? @relation(fields: [imageAssetId], references: [id])
+    externalUrl String?
+    placement ItemPlacement?
 
     @@map('item')
     @@allow('read', auth() != null)
@@ -98,4 +111,149 @@ model WishlistItem {
     @@map('wishlist_item')
     @@allow('create', auth().id == userId)
     @@allow('read,delete', auth().id == userId)
+}
+
+// No generic writes: all mutations go through the validated service.
+// Ownerless legacy items remain non-placeable until explicitly migrated.
+model Store {
+    id String @id @default(cuid())
+    ownerId String
+    owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+    name String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+    items Item[]
+    @@index([ownerId])
+    @@map('store')
+    @@allow('read', auth().id == ownerId)
+}
+model ImageAsset {
+    id String @id
+    ownerId String
+    owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+    storageKey String @unique
+    mediaType String
+    width Int
+    height Int
+    size Int
+    createdAt DateTime @default(now())
+    items Item[]
+    @@map('image_asset')
+    @@allow('read', auth().id == ownerId)
+}
+model ItemPlacement {
+    id String @id
+    itemId String @unique
+    item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+    worldId String
+    surfaceId String
+    x Float
+    y Float
+    z Float
+    yaw Float
+    revision Int @default(1)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+    @@map('item_placement')
+    @@allow('read', auth() != null)
+}
+
+// Internal service state: no access policies permit client reads or writes.
+model GameTicket {
+    hash String @id
+    sessionId String
+    session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+    worldId String
+    expiresAt DateTime
+    @@map('game_ticket')
+}
+model MarketRequest {
+    userId String
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    key String
+    fingerprint String
+    result Json
+    createdAt DateTime @default(now())
+    @@id([userId, key])
+    @@map('market_request')
+}
+model MarketRate {
+    key String @id
+    count Int
+    expiresAt DateTime
+    @@map('market_rate')
+}
+model WorldRevision {
+    id String @id
+    revision BigInt @default(0)
+    @@map('world_revision')
+}
+
+// Internal application procedures, exposed only by authenticated /api/market adapters.
+// /api/model deliberately does not expose $procs. Receipts preserve existing HTTP fingerprints.
+type MarketReceipt {
+    key String
+    fingerprint String
+}
+type MarketId {
+    id String
+}
+type MarketStore {
+    id String
+    name String
+}
+type MarketStores {
+    accountId String
+    stores MarketStore[]
+}
+type MarketSaved {
+    saved Boolean
+}
+type MarketTicket {
+    ticket String
+}
+type MarketIdentity {
+    userId String
+}
+type MarketAdmission {
+    sessionId String
+    userId String
+    name String
+}
+type MarketWorld {
+    revision String
+    placements MarketFrame[]
+}
+procedure marketStores(): MarketStores
+mutation procedure marketCreateStore(name: String, receipt: MarketReceipt): MarketStore
+mutation procedure marketDeleteStore(id: String, receipt: MarketReceipt): MarketId
+procedure marketInventory(storeId: String): Json
+mutation procedure marketSaveItem(storeId: String, id: String?, name: String, details: String, imageAssetId: String, externalUrl: String, receipt: MarketReceipt): MarketId
+mutation procedure marketDeleteItem(storeId: String, id: String, receipt: MarketReceipt): MarketId
+procedure marketWishlist(itemId: String): MarketSaved
+mutation procedure marketSetWishlist(itemId: String, saved: Boolean, receipt: MarketReceipt): MarketSaved
+mutation procedure marketIssueTicket(): MarketTicket
+procedure marketWorld(): MarketWorld
+mutation procedure marketRedeemTicket(ticket: String, worldId: String): MarketAdmission
+procedure marketValidateSession(sessionId: String): MarketIdentity
+mutation procedure marketPlace(sessionId: String, itemId: String, worldId: String, surfaceId: String, x: Float, y: Float, z: Float, yaw: Float, receipt: MarketReceipt): Json
+mutation procedure marketRemove(sessionId: String, itemId: String, placementId: String, revision: Int, receipt: MarketReceipt): MarketId
+
+type MarketFrame {
+    id String
+    itemId String
+    worldId String
+    surfaceId String
+    x Float
+    y Float
+    z Float
+    yaw Float
+    revision Int
+    createdAt DateTime
+    updatedAt DateTime
+    name String
+    details String
+    externalUrl String?
+    imageAssetId String?
+    storeName String
 }

@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 
+// Ownerless legacy listings: intentionally not placeable; never assigned to a player.
 // Placeholder listings (first four come from the wireframe).
 // Prices are in cents. Listed oldest first so the first item is the newest.
 const items = [

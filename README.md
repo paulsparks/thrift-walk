@@ -1,5 +1,25 @@
 # Thrift Walk
 
+## Ubuntu deployment with Docker Compose
+
+See [the deployment guide](deploy/README.md) for Docker installation, DNS, backups,
+and updates. On an x86-64 server with Docker Compose installed:
+
+```sh
+git lfs install
+git lfs pull
+./deploy/configure.sh market.example.com you@example.com
+sudo chown 1000:1000 storage/images
+sudo chmod 750 storage/images
+docker compose --env-file .env.production up -d --build
+```
+
+Point the domain at your server and open TCP ports 80/443 (UDP 443 is optional).
+The stack builds matching browser/dedicated game exports, applies migrations,
+and starts PostgreSQL, Next.js, Godot, and Caddy with automatic HTTPS.
+Database data lives in `./database`, images in `./storage/images`, and certificates
+persist in Caddy named volumes.
+
 ## Getting Started with Development
 
 ### Prerequisites
@@ -31,7 +51,16 @@ Configure `secretspec` by running `secretspec config init` and select `env`, the
 
 Once you have the necessary background services running and secretspec configured, the application can be started in development mode by applying database migrations with `pnpm-s migrate` and then running `pnpm-s dev`. Note that the `pnpm-s` command is the same as the normal `pnpm` command, but with secrets injected into its environment via `secretspec`. Only commands that need secrets should be run with `secretspec run -- <cmd>` and/or `pnpm-s`.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The development profile uses `http://localhost:9000` as the public origin. With
+Next.js running on port 3000, start the temporary proxy from the repository root:
+
+```sh
+secretspec run -- node scripts/dev-proxy.mjs
+```
+
+Open [http://localhost:9000](http://localhost:9000). The same proxy forwards
+`/game-socket` to the dedicated Godot server on port 8080. See the storefront
+guide below for server setup and browser export instructions.
 
 #### Game
 

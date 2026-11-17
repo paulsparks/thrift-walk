@@ -10,14 +10,15 @@ import { useClientQueries } from "@zenstackhq/tanstack-query/react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-import { formatPrice } from "@/lib/format";
+import { ItemPrice } from "@/components/item-price";
 import { schema } from "~/zenstack/schema";
 
 export type StoreItem = {
     id: string;
     name: string;
     details: string;
-    priceCents: number;
+    priceCents: number | null;
+    externalUrl?: string | null;
 };
 
 const tiles = [
@@ -107,9 +108,15 @@ export function StoreBrowser({
                 i.details.toLowerCase().includes(q),
         );
         if (sort === "price-asc")
-            return [...list].sort((a, b) => a.priceCents - b.priceCents);
+            return [...list].sort(
+                (a, b) =>
+                    (a.priceCents ?? Infinity) - (b.priceCents ?? Infinity),
+            );
         if (sort === "price-desc")
-            return [...list].sort((a, b) => b.priceCents - a.priceCents);
+            return [...list].sort(
+                (a, b) =>
+                    (b.priceCents ?? -Infinity) - (a.priceCents ?? -Infinity),
+            );
         return list;
     }, [items, query, sort]);
 
@@ -225,7 +232,10 @@ export function StoreBrowser({
                                             {item.name}
                                         </h3>
                                         <span className="font-display font-extrabold">
-                                            {formatPrice(item.priceCents)}
+                                            <ItemPrice
+                                                priceCents={item.priceCents}
+                                                externalUrl={item.externalUrl}
+                                            />
                                         </span>
                                     </div>
                                     <p className="text-sm opacity-70">

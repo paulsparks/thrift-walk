@@ -1,0 +1,34 @@
+[gd_scene format=3 uid="uid://bnwwulhr67isq"]
+
+[ext_resource type="Script" uid="uid://b15pvyyqd1ucb" path="res://scripts/store/product_frame.gd" id="1"]
+[ext_resource type="Script" uid="uid://c7ej3prijlyh" path="res://scripts/interactive/interact_component.gd" id="2"]
+
+[sub_resource type="StandardMaterial3D" id="wood"]
+albedo_color = Color(0.36, 0.21, 0.12, 1)
+
+[sub_resource type="BoxMesh" id="frame"]
+size = Vector3(0.6, 0.8, 0.06)
+
+[sub_resource type="QuadMesh" id="image"]
+size = Vector2(0.52, 0.72)
+
+[sub_resource type="BoxShape3D" id="shape"]
+size = Vector3(0.6, 0.8, 0.06)
+
+[node name="ProductFrame" type="StaticBody3D" unique_id=960300352]
+collision_layer = 2
+script = ExtResource("1")
+
+[node name="Frame" type="MeshInstance3D" parent="." unique_id=1122185380]
+material_override = SubResource("wood")
+mesh = SubResource("frame")
+
+[node name="Picture" type="MeshInstance3D" parent="." unique_id=1713230302]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.031)
+mesh = SubResource("image")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=283425212]
+shape = SubResource("shape")
+
+[node name="InteractComponent" type="Node" parent="." unique_id=1530243771]
+script = ExtResource("2")

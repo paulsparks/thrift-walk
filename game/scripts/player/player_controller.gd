@@ -8,7 +8,10 @@ const HARD_SNAP_DISTANCE := 1.5
 
 ## Set by the server. Only this peer may submit input for this player.
 var controlling_peer_id := 0
+var display_name := "Visitor"
 var hand_ray: Dictionary = {"collider": null, "hold_pos": null}
+
+var _nameplate: Label3D
 
 # Server-side input state. Input from anyone except the assigned peer is ignored.
 var _move_input := Vector2.ZERO
@@ -17,6 +20,7 @@ var _wants_sprint := false
 var _look_yaw := 0.0
 var _look_pitch := 0.0
 var _last_received_input_sequence := -1
+var _last_input_ms := 0
 
 # State received from the server. Clients interpolate it but never simulate it.
 var _server_position := Vector3.ZERO
@@ -43,6 +47,16 @@ var _last_collider: CollisionObject3D = null
 
 
 func _ready() -> void:
+	_nameplate = Label3D.new()
+	_nameplate.position = Vector3(0, 1.65, 0)
+	_nameplate.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_nameplate.font_size = 36
+	_nameplate.pixel_size = 0.005
+	_nameplate.outline_size = 8
+	_nameplate.modulate = Color("fff8e9")
+	_nameplate.text = display_name
+	_nameplate.visibility_range_end = 25.0
+	add_child(_nameplate)
 	_server_position = global_position
 	_movement = PlayerMovement.new(self, camera)
 	_view = PlayerView.new(camera, ui)
@@ -61,6 +75,7 @@ func _update_local_presentation() -> void:
 	var is_local := _is_local_controller()
 	_view.set_local_control(is_local)
 	playermodel.visible = not is_local
+	_nameplate.visible = not is_local
 
 
 ## Authority-only: clients cannot claim a player for themselves.
@@ -73,7 +88,9 @@ func set_controlling_peer(peer_id: int) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not _is_local_controller():
 		return
-	if event is InputEventMouseMotion:
+	if not InputMode.controls_active():
+		return
+	if event is InputEventMouseMotion and InputMode.accept_mouse_motion():
 		var mouse_motion := event as InputEventMouseMotion
 		_view.apply_mouse_motion(mouse_motion.relative)
 		_look_yaw = _view.get_yaw()
@@ -81,15 +98,23 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if not multiplayer.has_multiplayer_peer():
+		return
 	if multiplayer.is_server():
 		_simulate_server(delta)
-		_sync_state.rpc(
-			global_position,
-			velocity,
-			rotation.y,
-			camera.rotation.x,
-			is_on_floor(),
-			_last_received_input_sequence
+		(
+			Server
+			. sync_player(
+				controlling_peer_id,
+				{
+					"position": global_position,
+					"velocity": velocity,
+					"yaw": rotation.y,
+					"pitch": camera.rotation.x,
+					"on_floor": is_on_floor(),
+					"sequence": _last_received_input_sequence,
+				}
+			)
 		)
 	else:
 		if _is_local_controller():
@@ -102,9 +127,13 @@ func _physics_process(delta: float) -> void:
 func _submit_and_predict_local_input(delta: float) -> void:
 	var input_frame := PlayerInputFrame.new()
 	input_frame.sequence = _next_input_sequence
-	input_frame.move = Input.get_vector("left", "right", "forwards", "backwards")
-	input_frame.jump = Input.is_action_just_pressed("jump")
-	input_frame.sprint = Input.is_action_pressed("sprint")
+	input_frame.move = (
+		Input.get_vector("left", "right", "forwards", "backwards")
+		if InputMode.controls_active()
+		else Vector2.ZERO
+	)
+	input_frame.jump = InputMode.controls_active() and Input.is_action_just_pressed("jump")
+	input_frame.sprint = InputMode.controls_active() and Input.is_action_pressed("sprint")
 	input_frame.yaw = _view.get_yaw()
 	input_frame.pitch = _view.get_pitch()
 	input_frame.delta = delta
@@ -138,6 +167,14 @@ func _submit_input(
 		return
 	if sequence <= _last_received_input_sequence:
 		return
+	if (
+		not Server.admitted(controlling_peer_id)
+		or not input_dir.is_finite()
+		or not is_finite(yaw)
+		or not is_finite(pitch)
+	):
+		return
+	_last_input_ms = Time.get_ticks_msec()
 	_last_received_input_sequence = sequence
 	_move_input = input_dir.limit_length(1.0)
 	_wants_jump = _wants_jump or jump_pressed
@@ -147,6 +184,10 @@ func _submit_input(
 
 
 func _simulate_server(delta: float) -> void:
+	if Time.get_ticks_msec() - _last_input_ms > 250 or not Server.admitted(controlling_peer_id):
+		_move_input = Vector2.ZERO
+		_wants_jump = false
+		_wants_sprint = false
 	var input_frame := PlayerInputFrame.new()
 	input_frame.move = _move_input
 	input_frame.jump = _wants_jump
@@ -235,29 +276,24 @@ func _update_head_bob(delta: float) -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if not _is_local_controller():
+	if not _is_local_controller() or not InputMode.gameplay():
 		return
-
-	if event is InputEventMouseButton:
-		var mouse_event := event as InputEventMouseButton
-		if mouse_event.pressed and mouse_event.button_index == MOUSE_BUTTON_LEFT:
-			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-
-	if event is InputEventKey:
-		var key_event := event as InputEventKey
-		if key_event.pressed:
-			if key_event.keycode == KEY_ESCAPE:
-				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-			if event.is_action_pressed("interact"):
-				var collider := hand_ray.get("collider") as CollisionObject3D
-				if collider and collider.has_user_signal("triggered"):
-					collider.emit_signal("triggered")
+	if event.is_action_pressed("interact") and not event.is_echo():
+		var collider := hand_ray.get("collider") as CollisionObject3D
+		if is_instance_valid(collider) and collider.has_user_signal("triggered"):
+			collider.emit_signal("triggered")
 
 
 func _process(_delta: float) -> void:
 	if not _is_local_controller():
+		ui.visible = false
 		return
-	hand_ray = _view.get_raycast(get_world_3d(), get_viewport())
+	ui.visible = InputMode.gameplay()
+	hand_ray = (
+		_view.get_raycast(get_world_3d(), get_viewport())
+		if InputMode.gameplay()
+		else {"collider": null}
+	)
 	_update_gaze_target()
 
 
@@ -266,7 +302,7 @@ func _update_gaze_target() -> void:
 	if collider == _last_collider:
 		return
 
-	if _last_collider and _last_collider.has_user_signal("looked_away"):
+	if is_instance_valid(_last_collider) and _last_collider.has_user_signal("looked_away"):
 		_last_collider.emit_signal("looked_away")
 
 	if collider and collider.has_user_signal("looked_at"):

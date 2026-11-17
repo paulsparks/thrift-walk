@@ -1,20 +1,11 @@
 [gd_scene format=3 uid="uid://ba3x4t1pfxjnt"]
 
 [ext_resource type="PackedScene" uid="uid://beu5r0ws677b4" path="res://resources/models/demo_store/Tiny Store.fbx" id="1_grmdr"]
-[ext_resource type="Script" uid="uid://dpxthq3t8gkgy" path="res://scripts/interactive/cube_test.gd" id="2_2cn3r"]
 [ext_resource type="Shader" uid="uid://dnj7i0yl0wuds" path="res://resources/shaders/skybox-night.tres" id="2_fmffy"]
 [ext_resource type="Texture2D" uid="uid://1btvyl6spmwd" path="res://resources/textures/skybox-night.png" id="2_skybox"]
-[ext_resource type="Script" uid="uid://c7ej3prijlyh" path="res://scripts/interactive/interact_component.gd" id="3_0lquw"]
 [ext_resource type="PackedScene" uid="uid://3au548inor5b" path="res://resources/models/city/city.fbx" id="3_iq8gy"]
 [ext_resource type="Texture2D" uid="uid://c2jxch7yhm4li" path="res://resources/textures/ground.JPG" id="4_1fv73"]
 [ext_resource type="PackedScene" uid="uid://2pumg07aiwbl" path="res://resources/models/barricade/Concrete+Barricade.fbx" id="8_lrkhj"]
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_dadqq"]
-
-[sub_resource type="BoxMesh" id="BoxMesh_i8p4n"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dadqq"]
-albedo_color = Color(1, 0, 0, 1)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_lrkhj"]
 size = Vector3(21, 1, 17)
@@ -44,28 +35,21 @@ uv1_scale = Vector3(50, 50, 50)
 material = SubResource("StandardMaterial3D_i8p4n")
 size = Vector2(500, 500)
 
+[sub_resource type="BoxShape3D" id="DisplayShape"]
+size = Vector3(6, 3, 0.1)
+
+[sub_resource type="StandardMaterial3D" id="DisplayMaterial"]
+albedo_color = Color(0.72, 0.62, 0.43, 1)
+
+[sub_resource type="BoxMesh" id="DisplayMesh"]
+size = Vector3(6, 3, 0.1)
+
 [node name="DemoStore" type="Node3D" unique_id=1366019686]
 
 [node name="Map" type="Node" parent="." unique_id=1804826337]
 
 [node name="Tiny Store" parent="Map" unique_id=1466866203 instance=ExtResource("1_grmdr")]
 transform = Transform3D(-1.5, 0, 1.3113416e-07, 0, 1.5, 0, -1.3113416e-07, 0, -1.5, 3.021389, 0, 0.18271637)
-
-[node name="StaticBody3D" type="StaticBody3D" parent="Map" unique_id=1230675485]
-transform = Transform3D(-1.5, 0, 1.3113416e-07, 0, 1.5, 0, -1.3113416e-07, 0, -1.5, 3.0213888, 1.5747533, 2.147684)
-collision_layer = 3
-script = ExtResource("2_2cn3r")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Map/StaticBody3D" unique_id=300275241]
-shape = SubResource("BoxShape3D_dadqq")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Map/StaticBody3D" unique_id=79892921]
-mesh = SubResource("BoxMesh_i8p4n")
-surface_material_override/0 = SubResource("StandardMaterial3D_dadqq")
-
-[node name="InteractComponent" type="Node" parent="Map/StaticBody3D" unique_id=1152049099]
-script = ExtResource("3_0lquw")
-tooltip = "Change color"
 
 [node name="Floor" type="StaticBody3D" parent="Map" unique_id=554020411]
 transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, 2.9824524, 0, 0.18271637)
@@ -267,3 +251,20 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.339975, 4.396376, 2.205058
 light_energy = 0.2
 omni_range = 9.702
 omni_attenuation = 0.193
+
+[node name="SharedDisplayWall" type="StaticBody3D" parent="." unique_id=1451289979 groups=["display_surface"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, -2)
+metadata/surface_id = "demo-board"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SharedDisplayWall" unique_id=405170636]
+shape = SubResource("DisplayShape")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="SharedDisplayWall" unique_id=2131519779]
+material_override = SubResource("DisplayMaterial")
+mesh = SubResource("DisplayMesh")
+
+[node name="Label" type="Label3D" parent="SharedDisplayWall" unique_id=798094817]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0.06)
+pixel_size = 0.004
+text = "COMMUNITY FINDS • SHARED DISPLAY"
+font_size = 48

@@ -41,6 +41,22 @@ export class SchemaType implements SchemaDef {
                     name: "name",
                     type: "String",
                 },
+                bio: {
+                    name: "bio",
+                    type: "String",
+                    attributes: [
+                        {
+                            name: "@default",
+                            args: [
+                                {
+                                    name: "value",
+                                    value: ExpressionUtils.literal(""),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    default: "" as FieldDefault,
+                },
                 email: {
                     name: "email",
                     type: "String",
@@ -135,6 +151,24 @@ export class SchemaType implements SchemaDef {
                 wishlist: {
                     name: "wishlist",
                     type: "WishlistItem",
+                    array: true,
+                    relation: { opposite: "user" },
+                },
+                stores: {
+                    name: "stores",
+                    type: "Store",
+                    array: true,
+                    relation: { opposite: "owner" },
+                },
+                images: {
+                    name: "images",
+                    type: "ImageAsset",
+                    array: true,
+                    relation: { opposite: "owner" },
+                },
+                marketRequests: {
+                    name: "marketRequests",
+                    type: "MarketRequest",
                     array: true,
                     relation: { opposite: "user" },
                 },
@@ -270,6 +304,12 @@ export class SchemaType implements SchemaDef {
                         references: ["id"],
                         onDelete: "Cascade",
                     },
+                },
+                tickets: {
+                    name: "tickets",
+                    type: "GameTicket",
+                    array: true,
+                    relation: { opposite: "session" },
                 },
             },
             attributes: [
@@ -416,26 +456,6 @@ export class SchemaType implements SchemaDef {
                         },
                     ],
                 },
-                {
-                    name: "@@allow",
-                    args: [
-                        {
-                            name: "operation",
-                            value: ExpressionUtils.literal("read"),
-                        },
-                        {
-                            name: "condition",
-                            value: ExpressionUtils.binary(
-                                ExpressionUtils.member(
-                                    ExpressionUtils.call("auth"),
-                                    ["id"],
-                                ),
-                                "==",
-                                ExpressionUtils.field("userId"),
-                            ),
-                        },
-                    ],
-                },
             ] as readonly AttributeApplication[],
             idFields: ["id"],
             uniqueFields: {
@@ -548,6 +568,7 @@ export class SchemaType implements SchemaDef {
                 priceCents: {
                     name: "priceCents",
                     type: "Int",
+                    optional: true,
                 },
                 createdAt: {
                     name: "createdAt",
@@ -569,6 +590,110 @@ export class SchemaType implements SchemaDef {
                     name: "wishlist",
                     type: "WishlistItem",
                     array: true,
+                    relation: { opposite: "item" },
+                },
+                updatedAt: {
+                    name: "updatedAt",
+                    type: "DateTime",
+                    updatedAt: true,
+                    attributes: [
+                        {
+                            name: "@default",
+                            args: [
+                                {
+                                    name: "value",
+                                    value: ExpressionUtils.call("now"),
+                                },
+                            ],
+                        },
+                        { name: "@updatedAt" },
+                    ] as readonly AttributeApplication[],
+                    default: ExpressionUtils.call("now") as FieldDefault,
+                },
+                storeId: {
+                    name: "storeId",
+                    type: "String",
+                    optional: true,
+                    foreignKeyFor: ["store"] as readonly string[],
+                },
+                store: {
+                    name: "store",
+                    type: "Store",
+                    optional: true,
+                    attributes: [
+                        {
+                            name: "@relation",
+                            args: [
+                                {
+                                    name: "fields",
+                                    value: ExpressionUtils.array("String", [
+                                        ExpressionUtils.field("storeId"),
+                                    ]),
+                                },
+                                {
+                                    name: "references",
+                                    value: ExpressionUtils.array("String", [
+                                        ExpressionUtils.field("id"),
+                                    ]),
+                                },
+                                {
+                                    name: "onDelete",
+                                    value: ExpressionUtils.literal("Cascade"),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    relation: {
+                        opposite: "items",
+                        fields: ["storeId"],
+                        references: ["id"],
+                        onDelete: "Cascade",
+                    },
+                },
+                imageAssetId: {
+                    name: "imageAssetId",
+                    type: "String",
+                    optional: true,
+                    foreignKeyFor: ["imageAsset"] as readonly string[],
+                },
+                imageAsset: {
+                    name: "imageAsset",
+                    type: "ImageAsset",
+                    optional: true,
+                    attributes: [
+                        {
+                            name: "@relation",
+                            args: [
+                                {
+                                    name: "fields",
+                                    value: ExpressionUtils.array("String", [
+                                        ExpressionUtils.field("imageAssetId"),
+                                    ]),
+                                },
+                                {
+                                    name: "references",
+                                    value: ExpressionUtils.array("String", [
+                                        ExpressionUtils.field("id"),
+                                    ]),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    relation: {
+                        opposite: "items",
+                        fields: ["imageAssetId"],
+                        references: ["id"],
+                    },
+                },
+                externalUrl: {
+                    name: "externalUrl",
+                    type: "String",
+                    optional: true,
+                },
+                placement: {
+                    name: "placement",
+                    type: "ItemPlacement",
+                    optional: true,
                     relation: { opposite: "item" },
                 },
             },
@@ -810,6 +935,889 @@ export class SchemaType implements SchemaDef {
                 },
             },
         },
+        Store: {
+            name: "Store",
+            fields: {
+                id: {
+                    name: "id",
+                    type: "String",
+                    id: true,
+                    attributes: [
+                        { name: "@id" },
+                        {
+                            name: "@default",
+                            args: [
+                                {
+                                    name: "value",
+                                    value: ExpressionUtils.call("cuid"),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    default: ExpressionUtils.call("cuid") as FieldDefault,
+                },
+                ownerId: {
+                    name: "ownerId",
+                    type: "String",
+                    foreignKeyFor: ["owner"] as readonly string[],
+                },
+                owner: {
+                    name: "owner",
+                    type: "User",
+                    attributes: [
+                        {
+                            name: "@relation",
+                            args: [
+                                {
+                                    name: "fields",
+                                    value: ExpressionUtils.array("String", [
+                                        ExpressionUtils.field("ownerId"),
+                                    ]),
+                                },
+                                {
+                                    name: "references",
+                                    value: ExpressionUtils.array("String", [
+                                        ExpressionUtils.field("id"),
+                                    ]),
+                                },
+                                {
+                                    name: "onDelete",
+                                    value: ExpressionUtils.literal("Cascade"),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    relation: {
+                        opposite: "stores",
+                        fields: ["ownerId"],
+                        references: ["id"],
+                        onDelete: "Cascade",
+                    },
+                },
+                name: {
+                    name: "name",
+                    type: "String",
+                },
+                createdAt: {
+                    name: "createdAt",
+                    type: "DateTime",
+                    attributes: [
+                        {
+                            name: "@default",
+                            args: [
+                                {
+                                    name: "value",
+                                    value: ExpressionUtils.call("now"),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    default: ExpressionUtils.call("now") as FieldDefault,
+                },
+                updatedAt: {
+                    name: "updatedAt",
+                    type: "DateTime",
+                    updatedAt: true,
+                    attributes: [
+                        {
+                            name: "@default",
+                            args: [
+                                {
+                                    name: "value",
+                                    value: ExpressionUtils.call("now"),
+                                },
+                            ],
+                        },
+                        { name: "@updatedAt" },
+                    ] as readonly AttributeApplication[],
+                    default: ExpressionUtils.call("now") as FieldDefault,
+                },
+                items: {
+                    name: "items",
+                    type: "Item",
+                    array: true,
+                    relation: { opposite: "store" },
+                },
+            },
+            attributes: [
+                {
+                    name: "@@index",
+                    args: [
+                        {
+                            name: "fields",
+                            value: ExpressionUtils.array("String", [
+                                ExpressionUtils.field("ownerId"),
+                            ]),
+                        },
+                    ],
+                },
+                {
+                    name: "@@map",
+                    args: [
+                        {
+                            name: "name",
+                            value: ExpressionUtils.literal("store"),
+                        },
+                    ],
+                },
+                {
+                    name: "@@allow",
+                    args: [
+                        {
+                            name: "operation",
+                            value: ExpressionUtils.literal("read"),
+                        },
+                        {
+                            name: "condition",
+                            value: ExpressionUtils.binary(
+                                ExpressionUtils.member(
+                                    ExpressionUtils.call("auth"),
+                                    ["id"],
+                                ),
+                                "==",
+                                ExpressionUtils.field("ownerId"),
+                            ),
+                        },
+                    ],
+                },
+            ] as readonly AttributeApplication[],
+            idFields: ["id"],
+            uniqueFields: {
+                id: { type: "String" },
+            },
+        },
+        ImageAsset: {
+            name: "ImageAsset",
+            fields: {
+                id: {
+                    name: "id",
+                    type: "String",
+                    id: true,
+                    attributes: [
+                        { name: "@id" },
+                    ] as readonly AttributeApplication[],
+                },
+                ownerId: {
+                    name: "ownerId",
+                    type: "String",
+                    foreignKeyFor: ["owner"] as readonly string[],
+                },
+                owner: {
+                    name: "owner",
+                    type: "User",
+                    attributes: [
+                        {
+                            name: "@relation",
+                            args: [
+                                {
+                                    name: "fields",
+                                    value: ExpressionUtils.array("String", [
+                                        ExpressionUtils.field("ownerId"),
+                                    ]),
+                                },
+                                {
+                                    name: "references",
+                                    value: ExpressionUtils.array("String", [
+                                        ExpressionUtils.field("id"),
+                                    ]),
+                                },
+                                {
+                                    name: "onDelete",
+                                    value: ExpressionUtils.literal("Cascade"),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    relation: {
+                        opposite: "images",
+                        fields: ["ownerId"],
+                        references: ["id"],
+                        onDelete: "Cascade",
+                    },
+                },
+                storageKey: {
+                    name: "storageKey",
+                    type: "String",
+                    unique: true,
+                    attributes: [
+                        { name: "@unique" },
+                    ] as readonly AttributeApplication[],
+                },
+                mediaType: {
+                    name: "mediaType",
+                    type: "String",
+                },
+                width: {
+                    name: "width",
+                    type: "Int",
+                },
+                height: {
+                    name: "height",
+                    type: "Int",
+                },
+                size: {
+                    name: "size",
+                    type: "Int",
+                },
+                createdAt: {
+                    name: "createdAt",
+                    type: "DateTime",
+                    attributes: [
+                        {
+                            name: "@default",
+                            args: [
+                                {
+                                    name: "value",
+                                    value: ExpressionUtils.call("now"),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    default: ExpressionUtils.call("now") as FieldDefault,
+                },
+                items: {
+                    name: "items",
+                    type: "Item",
+                    array: true,
+                    relation: { opposite: "imageAsset" },
+                },
+            },
+            attributes: [
+                {
+                    name: "@@map",
+                    args: [
+                        {
+                            name: "name",
+                            value: ExpressionUtils.literal("image_asset"),
+                        },
+                    ],
+                },
+                {
+                    name: "@@allow",
+                    args: [
+                        {
+                            name: "operation",
+                            value: ExpressionUtils.literal("read"),
+                        },
+                        {
+                            name: "condition",
+                            value: ExpressionUtils.binary(
+                                ExpressionUtils.member(
+                                    ExpressionUtils.call("auth"),
+                                    ["id"],
+                                ),
+                                "==",
+                                ExpressionUtils.field("ownerId"),
+                            ),
+                        },
+                    ],
+                },
+            ] as readonly AttributeApplication[],
+            idFields: ["id"],
+            uniqueFields: {
+                id: { type: "String" },
+                storageKey: { type: "String" },
+            },
+        },
+        ItemPlacement: {
+            name: "ItemPlacement",
+            fields: {
+                id: {
+                    name: "id",
+                    type: "String",
+                    id: true,
+                    attributes: [
+                        { name: "@id" },
+                    ] as readonly AttributeApplication[],
+                },
+                itemId: {
+                    name: "itemId",
+                    type: "String",
+                    unique: true,
+                    attributes: [
+                        { name: "@unique" },
+                    ] as readonly AttributeApplication[],
+                    foreignKeyFor: ["item"] as readonly string[],
+                },
+                item: {
+                    name: "item",
+                    type: "Item",
+                    attributes: [
+                        {
+                            name: "@relation",
+                            args: [
+                                {
+                                    name: "fields",
+                                    value: ExpressionUtils.array("String", [
+                                        ExpressionUtils.field("itemId"),
+                                    ]),
+                                },
+                                {
+                                    name: "references",
+                                    value: ExpressionUtils.array("String", [
+                                        ExpressionUtils.field("id"),
+                                    ]),
+                                },
+                                {
+                                    name: "onDelete",
+                                    value: ExpressionUtils.literal("Cascade"),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    relation: {
+                        opposite: "placement",
+                        fields: ["itemId"],
+                        references: ["id"],
+                        onDelete: "Cascade",
+                    },
+                },
+                worldId: {
+                    name: "worldId",
+                    type: "String",
+                },
+                surfaceId: {
+                    name: "surfaceId",
+                    type: "String",
+                },
+                x: {
+                    name: "x",
+                    type: "Float",
+                },
+                y: {
+                    name: "y",
+                    type: "Float",
+                },
+                z: {
+                    name: "z",
+                    type: "Float",
+                },
+                yaw: {
+                    name: "yaw",
+                    type: "Float",
+                },
+                revision: {
+                    name: "revision",
+                    type: "Int",
+                    attributes: [
+                        {
+                            name: "@default",
+                            args: [
+                                {
+                                    name: "value",
+                                    value: ExpressionUtils.literal(1),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    default: 1 as FieldDefault,
+                },
+                createdAt: {
+                    name: "createdAt",
+                    type: "DateTime",
+                    attributes: [
+                        {
+                            name: "@default",
+                            args: [
+                                {
+                                    name: "value",
+                                    value: ExpressionUtils.call("now"),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    default: ExpressionUtils.call("now") as FieldDefault,
+                },
+                updatedAt: {
+                    name: "updatedAt",
+                    type: "DateTime",
+                    updatedAt: true,
+                    attributes: [
+                        {
+                            name: "@default",
+                            args: [
+                                {
+                                    name: "value",
+                                    value: ExpressionUtils.call("now"),
+                                },
+                            ],
+                        },
+                        { name: "@updatedAt" },
+                    ] as readonly AttributeApplication[],
+                    default: ExpressionUtils.call("now") as FieldDefault,
+                },
+            },
+            attributes: [
+                {
+                    name: "@@map",
+                    args: [
+                        {
+                            name: "name",
+                            value: ExpressionUtils.literal("item_placement"),
+                        },
+                    ],
+                },
+                {
+                    name: "@@allow",
+                    args: [
+                        {
+                            name: "operation",
+                            value: ExpressionUtils.literal("read"),
+                        },
+                        {
+                            name: "condition",
+                            value: ExpressionUtils.binary(
+                                ExpressionUtils.call("auth"),
+                                "!=",
+                                ExpressionUtils._null(),
+                            ),
+                        },
+                    ],
+                },
+            ] as readonly AttributeApplication[],
+            idFields: ["id"],
+            uniqueFields: {
+                id: { type: "String" },
+                itemId: { type: "String" },
+            },
+        },
+        GameTicket: {
+            name: "GameTicket",
+            fields: {
+                hash: {
+                    name: "hash",
+                    type: "String",
+                    id: true,
+                    attributes: [
+                        { name: "@id" },
+                    ] as readonly AttributeApplication[],
+                },
+                sessionId: {
+                    name: "sessionId",
+                    type: "String",
+                    foreignKeyFor: ["session"] as readonly string[],
+                },
+                session: {
+                    name: "session",
+                    type: "Session",
+                    attributes: [
+                        {
+                            name: "@relation",
+                            args: [
+                                {
+                                    name: "fields",
+                                    value: ExpressionUtils.array("String", [
+                                        ExpressionUtils.field("sessionId"),
+                                    ]),
+                                },
+                                {
+                                    name: "references",
+                                    value: ExpressionUtils.array("String", [
+                                        ExpressionUtils.field("id"),
+                                    ]),
+                                },
+                                {
+                                    name: "onDelete",
+                                    value: ExpressionUtils.literal("Cascade"),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    relation: {
+                        opposite: "tickets",
+                        fields: ["sessionId"],
+                        references: ["id"],
+                        onDelete: "Cascade",
+                    },
+                },
+                worldId: {
+                    name: "worldId",
+                    type: "String",
+                },
+                expiresAt: {
+                    name: "expiresAt",
+                    type: "DateTime",
+                },
+            },
+            attributes: [
+                {
+                    name: "@@map",
+                    args: [
+                        {
+                            name: "name",
+                            value: ExpressionUtils.literal("game_ticket"),
+                        },
+                    ],
+                },
+            ] as readonly AttributeApplication[],
+            idFields: ["hash"],
+            uniqueFields: {
+                hash: { type: "String" },
+            },
+        },
+        MarketRequest: {
+            name: "MarketRequest",
+            fields: {
+                userId: {
+                    name: "userId",
+                    type: "String",
+                    id: true,
+                    foreignKeyFor: ["user"] as readonly string[],
+                },
+                user: {
+                    name: "user",
+                    type: "User",
+                    attributes: [
+                        {
+                            name: "@relation",
+                            args: [
+                                {
+                                    name: "fields",
+                                    value: ExpressionUtils.array("String", [
+                                        ExpressionUtils.field("userId"),
+                                    ]),
+                                },
+                                {
+                                    name: "references",
+                                    value: ExpressionUtils.array("String", [
+                                        ExpressionUtils.field("id"),
+                                    ]),
+                                },
+                                {
+                                    name: "onDelete",
+                                    value: ExpressionUtils.literal("Cascade"),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    relation: {
+                        opposite: "marketRequests",
+                        fields: ["userId"],
+                        references: ["id"],
+                        onDelete: "Cascade",
+                    },
+                },
+                key: {
+                    name: "key",
+                    type: "String",
+                    id: true,
+                },
+                fingerprint: {
+                    name: "fingerprint",
+                    type: "String",
+                },
+                result: {
+                    name: "result",
+                    type: "Json",
+                },
+                createdAt: {
+                    name: "createdAt",
+                    type: "DateTime",
+                    attributes: [
+                        {
+                            name: "@default",
+                            args: [
+                                {
+                                    name: "value",
+                                    value: ExpressionUtils.call("now"),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    default: ExpressionUtils.call("now") as FieldDefault,
+                },
+            },
+            attributes: [
+                {
+                    name: "@@id",
+                    args: [
+                        {
+                            name: "fields",
+                            value: ExpressionUtils.array("String", [
+                                ExpressionUtils.field("userId"),
+                                ExpressionUtils.field("key"),
+                            ]),
+                        },
+                    ],
+                },
+                {
+                    name: "@@map",
+                    args: [
+                        {
+                            name: "name",
+                            value: ExpressionUtils.literal("market_request"),
+                        },
+                    ],
+                },
+            ] as readonly AttributeApplication[],
+            idFields: ["userId", "key"],
+            uniqueFields: {
+                userId_key: {
+                    userId: { type: "String" },
+                    key: { type: "String" },
+                },
+            },
+        },
+        MarketRate: {
+            name: "MarketRate",
+            fields: {
+                key: {
+                    name: "key",
+                    type: "String",
+                    id: true,
+                    attributes: [
+                        { name: "@id" },
+                    ] as readonly AttributeApplication[],
+                },
+                count: {
+                    name: "count",
+                    type: "Int",
+                },
+                expiresAt: {
+                    name: "expiresAt",
+                    type: "DateTime",
+                },
+            },
+            attributes: [
+                {
+                    name: "@@map",
+                    args: [
+                        {
+                            name: "name",
+                            value: ExpressionUtils.literal("market_rate"),
+                        },
+                    ],
+                },
+            ] as readonly AttributeApplication[],
+            idFields: ["key"],
+            uniqueFields: {
+                key: { type: "String" },
+            },
+        },
+        WorldRevision: {
+            name: "WorldRevision",
+            fields: {
+                id: {
+                    name: "id",
+                    type: "String",
+                    id: true,
+                    attributes: [
+                        { name: "@id" },
+                    ] as readonly AttributeApplication[],
+                },
+                revision: {
+                    name: "revision",
+                    type: "BigInt",
+                    attributes: [
+                        {
+                            name: "@default",
+                            args: [
+                                {
+                                    name: "value",
+                                    value: ExpressionUtils.literal(0),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    default: 0 as FieldDefault,
+                },
+            },
+            attributes: [
+                {
+                    name: "@@map",
+                    args: [
+                        {
+                            name: "name",
+                            value: ExpressionUtils.literal("world_revision"),
+                        },
+                    ],
+                },
+            ] as readonly AttributeApplication[],
+            idFields: ["id"],
+            uniqueFields: {
+                id: { type: "String" },
+            },
+        },
+    } as const;
+    typeDefs = {
+        MarketReceipt: {
+            name: "MarketReceipt",
+            fields: {
+                key: {
+                    name: "key",
+                    type: "String",
+                },
+                fingerprint: {
+                    name: "fingerprint",
+                    type: "String",
+                },
+            },
+        },
+        MarketId: {
+            name: "MarketId",
+            fields: {
+                id: {
+                    name: "id",
+                    type: "String",
+                },
+            },
+        },
+        MarketStore: {
+            name: "MarketStore",
+            fields: {
+                id: {
+                    name: "id",
+                    type: "String",
+                },
+                name: {
+                    name: "name",
+                    type: "String",
+                },
+            },
+        },
+        MarketStores: {
+            name: "MarketStores",
+            fields: {
+                accountId: {
+                    name: "accountId",
+                    type: "String",
+                },
+                stores: {
+                    name: "stores",
+                    type: "MarketStore",
+                    array: true,
+                },
+            },
+        },
+        MarketSaved: {
+            name: "MarketSaved",
+            fields: {
+                saved: {
+                    name: "saved",
+                    type: "Boolean",
+                },
+            },
+        },
+        MarketTicket: {
+            name: "MarketTicket",
+            fields: {
+                ticket: {
+                    name: "ticket",
+                    type: "String",
+                },
+            },
+        },
+        MarketIdentity: {
+            name: "MarketIdentity",
+            fields: {
+                userId: {
+                    name: "userId",
+                    type: "String",
+                },
+            },
+        },
+        MarketAdmission: {
+            name: "MarketAdmission",
+            fields: {
+                sessionId: {
+                    name: "sessionId",
+                    type: "String",
+                },
+                userId: {
+                    name: "userId",
+                    type: "String",
+                },
+                name: {
+                    name: "name",
+                    type: "String",
+                },
+            },
+        },
+        MarketWorld: {
+            name: "MarketWorld",
+            fields: {
+                revision: {
+                    name: "revision",
+                    type: "String",
+                },
+                placements: {
+                    name: "placements",
+                    type: "MarketFrame",
+                    array: true,
+                },
+            },
+        },
+        MarketFrame: {
+            name: "MarketFrame",
+            fields: {
+                id: {
+                    name: "id",
+                    type: "String",
+                },
+                itemId: {
+                    name: "itemId",
+                    type: "String",
+                },
+                worldId: {
+                    name: "worldId",
+                    type: "String",
+                },
+                surfaceId: {
+                    name: "surfaceId",
+                    type: "String",
+                },
+                x: {
+                    name: "x",
+                    type: "Float",
+                },
+                y: {
+                    name: "y",
+                    type: "Float",
+                },
+                z: {
+                    name: "z",
+                    type: "Float",
+                },
+                yaw: {
+                    name: "yaw",
+                    type: "Float",
+                },
+                revision: {
+                    name: "revision",
+                    type: "Int",
+                },
+                createdAt: {
+                    name: "createdAt",
+                    type: "DateTime",
+                },
+                updatedAt: {
+                    name: "updatedAt",
+                    type: "DateTime",
+                },
+                name: {
+                    name: "name",
+                    type: "String",
+                },
+                details: {
+                    name: "details",
+                    type: "String",
+                },
+                externalUrl: {
+                    name: "externalUrl",
+                    type: "String",
+                    optional: true,
+                },
+                imageAssetId: {
+                    name: "imageAssetId",
+                    type: "String",
+                    optional: true,
+                },
+                storeName: {
+                    name: "storeName",
+                    type: "String",
+                },
+            },
+        },
     } as const;
     enums = {
         Role: {
@@ -821,6 +1829,120 @@ export class SchemaType implements SchemaDef {
         },
     } as const;
     authType = "User" as const;
+    procedures = {
+        marketStores: {
+            params: {},
+            returnType: "MarketStores",
+        },
+        marketCreateStore: {
+            params: {
+                name: { name: "name", type: "String" },
+                receipt: { name: "receipt", type: "MarketReceipt" },
+            },
+            returnType: "MarketStore",
+            mutation: true,
+        },
+        marketDeleteStore: {
+            params: {
+                id: { name: "id", type: "String" },
+                receipt: { name: "receipt", type: "MarketReceipt" },
+            },
+            returnType: "MarketId",
+            mutation: true,
+        },
+        marketInventory: {
+            params: {
+                storeId: { name: "storeId", type: "String" },
+            },
+            returnType: "Json",
+        },
+        marketSaveItem: {
+            params: {
+                storeId: { name: "storeId", type: "String" },
+                id: { name: "id", optional: true, type: "String" },
+                name: { name: "name", type: "String" },
+                details: { name: "details", type: "String" },
+                imageAssetId: { name: "imageAssetId", type: "String" },
+                externalUrl: { name: "externalUrl", type: "String" },
+                receipt: { name: "receipt", type: "MarketReceipt" },
+            },
+            returnType: "MarketId",
+            mutation: true,
+        },
+        marketDeleteItem: {
+            params: {
+                storeId: { name: "storeId", type: "String" },
+                id: { name: "id", type: "String" },
+                receipt: { name: "receipt", type: "MarketReceipt" },
+            },
+            returnType: "MarketId",
+            mutation: true,
+        },
+        marketWishlist: {
+            params: {
+                itemId: { name: "itemId", type: "String" },
+            },
+            returnType: "MarketSaved",
+        },
+        marketSetWishlist: {
+            params: {
+                itemId: { name: "itemId", type: "String" },
+                saved: { name: "saved", type: "Boolean" },
+                receipt: { name: "receipt", type: "MarketReceipt" },
+            },
+            returnType: "MarketSaved",
+            mutation: true,
+        },
+        marketIssueTicket: {
+            params: {},
+            returnType: "MarketTicket",
+            mutation: true,
+        },
+        marketWorld: {
+            params: {},
+            returnType: "MarketWorld",
+        },
+        marketRedeemTicket: {
+            params: {
+                ticket: { name: "ticket", type: "String" },
+                worldId: { name: "worldId", type: "String" },
+            },
+            returnType: "MarketAdmission",
+            mutation: true,
+        },
+        marketValidateSession: {
+            params: {
+                sessionId: { name: "sessionId", type: "String" },
+            },
+            returnType: "MarketIdentity",
+        },
+        marketPlace: {
+            params: {
+                sessionId: { name: "sessionId", type: "String" },
+                itemId: { name: "itemId", type: "String" },
+                worldId: { name: "worldId", type: "String" },
+                surfaceId: { name: "surfaceId", type: "String" },
+                x: { name: "x", type: "Float" },
+                y: { name: "y", type: "Float" },
+                z: { name: "z", type: "Float" },
+                yaw: { name: "yaw", type: "Float" },
+                receipt: { name: "receipt", type: "MarketReceipt" },
+            },
+            returnType: "Json",
+            mutation: true,
+        },
+        marketRemove: {
+            params: {
+                sessionId: { name: "sessionId", type: "String" },
+                itemId: { name: "itemId", type: "String" },
+                placementId: { name: "placementId", type: "String" },
+                revision: { name: "revision", type: "Int" },
+                receipt: { name: "receipt", type: "MarketReceipt" },
+            },
+            returnType: "MarketId",
+            mutation: true,
+        },
+    } as const;
     plugins = {};
 }
 export const schema = new SchemaType();

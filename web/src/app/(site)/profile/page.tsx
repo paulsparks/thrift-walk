@@ -1,61 +1,51 @@
 import {
     IconCamera,
     IconCube,
-    IconDotsVertical,
     IconPlus,
     IconUserFilled,
 } from "@tabler/icons-react";
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Fragment, type ReactNode } from "react";
 
+import { ItemPrice } from "@/components/item-price";
 import { ShareButton } from "@/components/share-button";
 import { WishlistRemoveButton } from "@/components/wishlist-remove-button";
-import { formatPrice } from "@/lib/format";
+import { getProfileData, type ProfileData } from "@/lib/profile";
 import { getSessionDb } from "@/lib/session-db";
 
 export const metadata = {
     title: "Profile | ThriftWalk",
-    description:
-        "Wes Reed’s inventory, wishlist, scans, and stall on ThriftWalk.",
+    description: "Your inventory, wishlist, scans, and stores on ThriftWalk.",
 };
 
-// Placeholder profile data from the wireframe. Replace with data from database.
-const profile = {
-    name: "Wes Reed",
+// These features do not have data-model fields yet.
+const profilePlaceholders = {
     level: "Level 24 Explorer",
     title: "Collector",
-    bio: "Vintage enthusiast and 3D scanning hobbyist. Looking for rare 90s streetwear and industrial home decor.",
-    stats: [
-        { value: "156", label: "Items found" },
-        { value: "42", label: "3D scans" },
-        { value: "12k", label: "Credits" },
-    ],
 };
 
-const inventory = [
-    {
-        name: "90s Retro Walkman",
-        category: "Electronics",
-        rarity: "Rare",
-        value: 120,
-        tile: "bg-secondary text-secondary-content",
-    },
-    {
-        name: "Oversized Flannel",
-        category: "Apparel",
-        rarity: "Common",
-        value: 35,
-        tile: "bg-accent text-accent-content",
-    },
-    {
-        name: "Ceramic Panther",
-        category: "Home Decor",
-        rarity: "Epic",
-        value: 210,
-        tile: "bg-info text-info-content",
-    },
-];
+function ItemPhoto({
+    name,
+    imageAssetId,
+}: {
+    name: string;
+    imageAssetId: string | null;
+}) {
+    return imageAssetId ? (
+        <Image
+            unoptimized
+            src={`/api/media/${encodeURIComponent(imageAssetId)}?thumb=1`}
+            alt={name}
+            fill
+            sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 25vw"
+            className="object-contain p-4"
+        />
+    ) : (
+        <IconCube size={96} aria-label="No item photo" role="img" />
+    );
+}
 
 const emptyState = (text: string) => (
     <p className="rounded-box border-2 border-dashed border-base-content/40 p-12 text-center opacity-70">
@@ -63,10 +53,7 @@ const emptyState = (text: string) => (
     </p>
 );
 
-type WishlistEntry = {
-    itemId: string;
-    item: { name: string; details: string; priceCents: number };
-};
+type WishlistEntry = ProfileData["wishlist"][number];
 
 const wishlistTiles = [
     "bg-secondary text-secondary-content",
@@ -81,8 +68,8 @@ function WishlistPanel({ entries }: { entries: WishlistEntry[] }) {
                 <p className="opacity-70">
                     Items you save from the store will show up here.
                 </p>
-                <Link href="/my-store" className="btn btn-primary mt-6">
-                    Browse the store
+                <Link href="/play" className="btn btn-primary mt-6">
+                    Explore the market
                 </Link>
             </div>
         );
@@ -96,9 +83,12 @@ function WishlistPanel({ entries }: { entries: WishlistEntry[] }) {
                     className="card card-border border-base-content bg-base-100"
                 >
                     <div
-                        className={`flex aspect-square items-center justify-center rounded-t-[calc(var(--radius-box)-2px)] border-b-2 border-base-content ${wishlistTiles[index % wishlistTiles.length]}`}
+                        className={`relative flex aspect-square items-center justify-center rounded-t-[calc(var(--radius-box)-2px)] border-b-2 border-base-content ${wishlistTiles[index % wishlistTiles.length]}`}
                     >
-                        <IconCube size={96} />
+                        <ItemPhoto
+                            name={item.name}
+                            imageAssetId={item.imageAssetId}
+                        />
                     </div>
                     <div className="card-body gap-1 p-4">
                         <div className="flex items-start justify-between gap-2">
@@ -106,7 +96,10 @@ function WishlistPanel({ entries }: { entries: WishlistEntry[] }) {
                                 {item.name}
                             </h3>
                             <span className="font-display font-extrabold">
-                                {formatPrice(item.priceCents)}
+                                <ItemPrice
+                                    priceCents={item.priceCents}
+                                    externalUrl={item.externalUrl}
+                                />
                             </span>
                         </div>
                         <p className="text-sm opacity-70">{item.details}</p>
@@ -123,60 +116,54 @@ function WishlistPanel({ entries }: { entries: WishlistEntry[] }) {
 
 type Tab = { id: string; label: string; panel: ReactNode };
 
-function buildTabs(wishlist: WishlistEntry[]): Tab[] {
+function buildTabs({ wishlist, inventory, stores }: ProfileData): Tab[] {
     return [
         {
             id: "inventory",
-            label: "Inventory (156)",
+            label: `Inventory (${inventory.length})`,
             panel: (
                 <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                     {inventory.map((item) => (
                         <li
-                            key={item.name}
+                            key={item.id}
                             className="card card-border border-base-content bg-base-100"
                         >
                             <div
-                                className={`flex aspect-square flex-col items-center justify-center gap-2 rounded-t-[calc(var(--radius-box)-2px)] border-b-2 border-base-content ${item.tile}`}
+                                className={`relative flex aspect-square flex-col items-center justify-center gap-2 rounded-t-[calc(var(--radius-box)-2px)] border-b-2 border-base-content ${wishlistTiles[0]}`}
                             >
-                                <IconCube size={96} />
-                                <span className="text-xs font-semibold tracking-widest uppercase">
-                                    3D asset
-                                </span>
+                                <ItemPhoto
+                                    name={item.name}
+                                    imageAssetId={item.imageAssetId}
+                                />
                             </div>
                             <div className="card-body gap-1 p-4">
+                                <span className="badge badge-outline badge-sm mb-2">
+                                    {item.placement
+                                        ? "On display"
+                                        : "Available"}
+                                </span>
                                 <h3 className="font-display font-extrabold">
                                     {item.name}
                                 </h3>
                                 <p className="text-xs tracking-wide uppercase opacity-60">
-                                    {item.category} • {item.rarity}
+                                    {item.storeName}
                                 </p>
-                                <div className="mt-3 flex items-center justify-between">
+                                <p className="text-sm opacity-70">
+                                    {item.details}
+                                </p>
+                                <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                                     <p className="text-sm font-semibold">
-                                        ${item.value} Est. Value
+                                        <ItemPrice
+                                            priceCents={item.priceCents}
+                                            externalUrl={item.externalUrl}
+                                        />
                                     </p>
-                                    <details className="dropdown dropdown-end">
-                                        <summary
-                                            className="btn btn-ghost btn-square btn-xs list-none shadow-none"
-                                            aria-label={`More options for ${item.name}`}
-                                        >
-                                            <IconDotsVertical
-                                                size={16}
-                                                aria-hidden="true"
-                                            />
-                                        </summary>
-                                        <ul className="menu dropdown-content z-10 w-44 rounded-box border-2 border-base-content bg-base-100 p-2">
-                                            <li>
-                                                <Link href="/my-store">
-                                                    List in store
-                                                </Link>
-                                            </li>
-                                            <li>
-                                                <Link href="/my-store/upload">
-                                                    Edit item
-                                                </Link>
-                                            </li>
-                                        </ul>
-                                    </details>
+                                    <Link
+                                        href={`/my-store?store=${encodeURIComponent(item.storeId)}`}
+                                        className="btn btn-ghost-outline btn-sm"
+                                    >
+                                        Manage item
+                                    </Link>
                                 </div>
                             </div>
                         </li>
@@ -212,9 +199,43 @@ function buildTabs(wishlist: WishlistEntry[]): Tab[] {
         },
         {
             id: "stall",
-            label: "Stall Settings",
-            panel: emptyState(
-                "Customize how your stall looks to other players.",
+            label: `My Stores (${stores.length})`,
+            panel: stores.length ? (
+                <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {stores.map((store) => (
+                        <li
+                            key={store.id}
+                            className="card card-border border-base-content bg-base-100"
+                        >
+                            <div className="card-body">
+                                <h3 className="font-display text-xl font-extrabold break-words">
+                                    {store.name}
+                                </h3>
+                                <p>
+                                    {store.items.length}{" "}
+                                    {store.items.length === 1
+                                        ? "item"
+                                        : "items"}
+                                </p>
+                                <Link
+                                    href={`/my-store?store=${encodeURIComponent(store.id)}`}
+                                    className="btn btn-ghost-outline mt-3"
+                                >
+                                    Manage store
+                                </Link>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            ) : (
+                <div className="rounded-box border-2 border-dashed border-base-content/40 p-12 text-center">
+                    <p className="opacity-70">
+                        You haven’t created a store yet.
+                    </p>
+                    <Link href="/my-store" className="btn btn-primary mt-6">
+                        Create a store
+                    </Link>
+                </div>
             ),
         },
     ];
@@ -228,18 +249,13 @@ export default async function Profile({
     const session = await getSessionDb();
     if (!session) redirect("/sign-in?redirect=/profile");
 
-    // Access policies only return the signed-in user's own wishlist rows.
-    const wishlist = await session.db.wishlistItem.findMany({
-        orderBy: { createdAt: "desc" },
-        select: {
-            itemId: true,
-            item: {
-                select: { name: true, details: true, priceCents: true },
-            },
-        },
-    });
-
-    const tabs = buildTabs(wishlist);
+    const data = await getProfileData(session.db, session.user.id);
+    const stats = [
+        { value: data.inventory.length, label: "Items" },
+        { value: "42", label: "3D scans" },
+        { value: "12k", label: "Credits" },
+    ];
+    const tabs = buildTabs(data);
     const { tab } = await searchParams;
     const activeTab = tabs.some((t) => t.id === tab) ? tab : "inventory";
 
@@ -249,12 +265,23 @@ export default async function Profile({
                 <section className="flex flex-wrap items-start gap-8 lg:flex-nowrap">
                     <div className="relative shrink-0">
                         <div className="grid size-40 place-items-center overflow-hidden rounded-3xl border-2 border-base-content bg-base-200 shadow-[6px_6px_0_var(--color-base-content)]">
-                            <IconUserFilled
-                                size={112}
-                                className="opacity-40"
-                                role="img"
-                                aria-label="Default profile picture"
-                            />
+                            {data.user.image ? (
+                                <Image
+                                    unoptimized
+                                    src={data.user.image}
+                                    alt={`${data.user.name}’s profile photo`}
+                                    width={160}
+                                    height={160}
+                                    className="size-full object-cover"
+                                />
+                            ) : (
+                                <IconUserFilled
+                                    size={112}
+                                    className="opacity-40"
+                                    role="img"
+                                    aria-label="Default profile picture"
+                                />
+                            )}
                         </div>
                         <Link
                             href="/profile/edit"
@@ -268,20 +295,22 @@ export default async function Profile({
                     <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-3">
                             <h1 className="font-display text-4xl font-extrabold tracking-tight sm:text-5xl">
-                                {profile.name}
+                                {data.user.name}
                             </h1>
                             <span className="badge badge-soft badge-lg font-semibold tracking-wide uppercase">
-                                {profile.level}
+                                {profilePlaceholders.level}
                             </span>
                             <span className="badge badge-primary badge-lg font-semibold tracking-wide uppercase">
-                                {profile.title}
+                                {profilePlaceholders.title}
                             </span>
                         </div>
-                        <p className="mt-4 max-w-xl opacity-80">
-                            {profile.bio}
-                        </p>
+                        {data.user.bio && (
+                            <p className="mt-4 max-w-xl whitespace-pre-wrap break-words opacity-80">
+                                {data.user.bio}
+                            </p>
+                        )}
                         <dl className="mt-6 flex flex-wrap gap-10">
-                            {profile.stats.map((s) => (
+                            {stats.map((s) => (
                                 <div
                                     key={s.label}
                                     className="flex flex-col-reverse"

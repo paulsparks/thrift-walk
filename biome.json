@@ -13,7 +13,9 @@
             "!**/.devenv",
             "!**/.direnv",
             "!**/.next",
+            "!**/.next-proxy-test",
             "!**/dist",
+            "!**/public/game",
             "!**/result",
             "!**/build"
         ]

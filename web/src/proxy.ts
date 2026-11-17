@@ -3,10 +3,24 @@ import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 
 /** Pages reachable without a session. Everything else is gated by default. */
-const PUBLIC_PAGES = new Set(["/sign-in", "/sign-up"]);
+const PUBLIC_PAGES = new Set([
+    "/api/health",
+    "/sign-in",
+    "/sign-up",
+    "/forgot-password",
+    "/reset-password",
+    "/play",
+]);
 
 function isPublic(pathname: string) {
-    return PUBLIC_PAGES.has(pathname) || pathname.startsWith("/api/auth/");
+    return (
+        PUBLIC_PAGES.has(pathname) ||
+        pathname.startsWith("/api/auth/") ||
+        // These handlers enforce their own session or trusted-server identity.
+        pathname.startsWith("/api/market/") ||
+        pathname.startsWith("/api/media/") ||
+        pathname.startsWith("/game/")
+    );
 }
 
 async function signOut(request: NextRequest) {

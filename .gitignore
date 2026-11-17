@@ -10,3 +10,21 @@ devenv.local.yaml
 .pre-commit-config.yaml
 
 .env
+.env.*
+backups/
+
+# Local normalized marketplace media
+web/.media/
+
+# Generated browser game export
+web/public/game/
+
+web/.next-proxy-test/
+
+# Local notes and specs
+docs
+
+# Deployment data stays on the host.
+/database/
+/storage/
+/config/

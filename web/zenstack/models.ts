@@ -5,7 +5,10 @@
 
 /* eslint-disable */
 
-import type { ModelResult as $ModelResult } from "@zenstackhq/orm";
+import type {
+    ModelResult as $ModelResult,
+    TypeDefResult as $TypeDefResult,
+} from "@zenstackhq/orm";
 
 import { type SchemaType as $Schema, schema as $schema } from "./schema";
 export type User = $ModelResult<$Schema, "User">;
@@ -14,5 +17,22 @@ export type Account = $ModelResult<$Schema, "Account">;
 export type Verification = $ModelResult<$Schema, "Verification">;
 export type Item = $ModelResult<$Schema, "Item">;
 export type WishlistItem = $ModelResult<$Schema, "WishlistItem">;
+export type Store = $ModelResult<$Schema, "Store">;
+export type ImageAsset = $ModelResult<$Schema, "ImageAsset">;
+export type ItemPlacement = $ModelResult<$Schema, "ItemPlacement">;
+export type GameTicket = $ModelResult<$Schema, "GameTicket">;
+export type MarketRequest = $ModelResult<$Schema, "MarketRequest">;
+export type MarketRate = $ModelResult<$Schema, "MarketRate">;
+export type WorldRevision = $ModelResult<$Schema, "WorldRevision">;
+export type MarketReceipt = $TypeDefResult<$Schema, "MarketReceipt">;
+export type MarketId = $TypeDefResult<$Schema, "MarketId">;
+export type MarketStore = $TypeDefResult<$Schema, "MarketStore">;
+export type MarketStores = $TypeDefResult<$Schema, "MarketStores">;
+export type MarketSaved = $TypeDefResult<$Schema, "MarketSaved">;
+export type MarketTicket = $TypeDefResult<$Schema, "MarketTicket">;
+export type MarketIdentity = $TypeDefResult<$Schema, "MarketIdentity">;
+export type MarketAdmission = $TypeDefResult<$Schema, "MarketAdmission">;
+export type MarketWorld = $TypeDefResult<$Schema, "MarketWorld">;
+export type MarketFrame = $TypeDefResult<$Schema, "MarketFrame">;
 export const Role = $schema.enums.Role.values;
 export type Role = (typeof Role)[keyof typeof Role];

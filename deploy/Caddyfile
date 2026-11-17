@@ -1,0 +1,22 @@
+{
+	email {$ACME_EMAIL}
+}
+
+{$SITE_ADDRESS} {
+	# Do not cache old game exports across deployments.
+	@game_assets path /game/*
+	header @game_assets Cache-Control "no-cache"
+
+	# Only Compose's internal health probe needs this endpoint.
+	handle /api/health {
+		respond 404
+	}
+	handle /game-socket {
+		rewrite * /
+		reverse_proxy game:8080
+	}
+	handle {
+		encode zstd gzip
+		reverse_proxy web:3000
+	}
+}

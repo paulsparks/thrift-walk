@@ -23,8 +23,6 @@ func _init(camera: Camera3D, ui: Control) -> void:
 func set_local_control(is_local: bool) -> void:
 	_camera.current = is_local
 	_ui.visible = is_local
-	if is_local:
-		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
 
 func apply_mouse_motion(relative: Vector2) -> void:

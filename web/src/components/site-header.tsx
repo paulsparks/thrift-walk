@@ -9,7 +9,7 @@ import { ThriftWalkLogo } from "./thriftwalk-logo";
 const navLinks = [
     { label: "Home", href: "/" },
     { label: "About", href: "/about" },
-    { label: "My Store", href: "/my-store" },
+    { label: "My Stores", href: "/my-store" },
 ];
 
 export function SiteHeader() {
@@ -82,7 +82,7 @@ export function SiteHeader() {
                     </Link>
                     <Link
                         href="/play"
-                        className="btn btn-accent btn-sm sm:btn-md"
+                        className="btn btn-secondary btn-sm sm:btn-md"
                     >
                         Start walking
                     </Link>

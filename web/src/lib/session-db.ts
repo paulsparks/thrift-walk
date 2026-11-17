@@ -16,6 +16,7 @@ export async function getSessionDb() {
 
     const userContext: AuthType<SchemaType> = {
         ...session.user,
+        bio: session.user.bio ?? "",
         sessions: [session.session],
     };
 

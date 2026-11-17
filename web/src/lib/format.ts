@@ -1,5 +1,6 @@
 /** Formats a price stored in cents, e.g. 8500 -> "$85", 1250 -> "$12.50". */
-export function formatPrice(cents: number) {
+export function formatPrice(cents: number | null) {
+    if (cents === null) return "See listing";
     return new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: "USD",

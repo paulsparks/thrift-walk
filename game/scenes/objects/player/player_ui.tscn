@@ -15,7 +15,7 @@ font_color = Color(0, 0, 0, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_u00du"]
 font_size = 12
-font_color = Color(1, 1, 1, 0.7058824)
+font_color = Color(1, 1, 1, 0.78431374)
 
 [node name="PlayerUI" type="Control" unique_id=1317581980]
 layout_mode = 3

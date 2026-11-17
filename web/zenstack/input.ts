@@ -300,3 +300,367 @@ export type WishlistItemGetPayload<
     Args extends $SelectIncludeOmit<$Schema, "WishlistItem", true>,
     Options extends $QueryOptions<$Schema> = $QueryOptions<$Schema>,
 > = $Result<$Schema, "WishlistItem", Args, Options>;
+export type StoreFindManyArgs = $FindManyArgs<$Schema, "Store">;
+export type StoreFindUniqueArgs = $FindUniqueArgs<$Schema, "Store">;
+export type StoreFindFirstArgs = $FindFirstArgs<$Schema, "Store">;
+export type StoreExistsArgs = $ExistsArgs<$Schema, "Store">;
+export type StoreCreateArgs = $CreateArgs<$Schema, "Store">;
+export type StoreCreateManyArgs = $CreateManyArgs<$Schema, "Store">;
+export type StoreCreateManyAndReturnArgs = $CreateManyAndReturnArgs<
+    $Schema,
+    "Store"
+>;
+export type StoreUpdateArgs = $UpdateArgs<$Schema, "Store">;
+export type StoreUpdateManyArgs = $UpdateManyArgs<$Schema, "Store">;
+export type StoreUpdateManyAndReturnArgs = $UpdateManyAndReturnArgs<
+    $Schema,
+    "Store"
+>;
+export type StoreUpsertArgs = $UpsertArgs<$Schema, "Store">;
+export type StoreDeleteArgs = $DeleteArgs<$Schema, "Store">;
+export type StoreDeleteManyArgs = $DeleteManyArgs<$Schema, "Store">;
+export type StoreCountArgs = $CountArgs<$Schema, "Store">;
+export type StoreAggregateArgs = $AggregateArgs<$Schema, "Store">;
+export type StoreGroupByArgs = $GroupByArgs<$Schema, "Store">;
+export type StoreWhereInput = $WhereInput<$Schema, "Store">;
+export type StoreSelect = $SelectInput<$Schema, "Store">;
+export type StoreInclude = $IncludeInput<$Schema, "Store">;
+export type StoreOmit = $OmitInput<$Schema, "Store">;
+export type StoreUncheckedCreateInput = $UncheckedCreateInput<$Schema, "Store">;
+export type StoreCheckedCreateInput = $CheckedCreateInput<$Schema, "Store">;
+export type StoreUncheckedUpdateInput = $UncheckedUpdateInput<$Schema, "Store">;
+export type StoreCheckedUpdateInput = $CheckedUpdateInput<$Schema, "Store">;
+export type StoreGetPayload<
+    Args extends $SelectIncludeOmit<$Schema, "Store", true>,
+    Options extends $QueryOptions<$Schema> = $QueryOptions<$Schema>,
+> = $Result<$Schema, "Store", Args, Options>;
+export type ImageAssetFindManyArgs = $FindManyArgs<$Schema, "ImageAsset">;
+export type ImageAssetFindUniqueArgs = $FindUniqueArgs<$Schema, "ImageAsset">;
+export type ImageAssetFindFirstArgs = $FindFirstArgs<$Schema, "ImageAsset">;
+export type ImageAssetExistsArgs = $ExistsArgs<$Schema, "ImageAsset">;
+export type ImageAssetCreateArgs = $CreateArgs<$Schema, "ImageAsset">;
+export type ImageAssetCreateManyArgs = $CreateManyArgs<$Schema, "ImageAsset">;
+export type ImageAssetCreateManyAndReturnArgs = $CreateManyAndReturnArgs<
+    $Schema,
+    "ImageAsset"
+>;
+export type ImageAssetUpdateArgs = $UpdateArgs<$Schema, "ImageAsset">;
+export type ImageAssetUpdateManyArgs = $UpdateManyArgs<$Schema, "ImageAsset">;
+export type ImageAssetUpdateManyAndReturnArgs = $UpdateManyAndReturnArgs<
+    $Schema,
+    "ImageAsset"
+>;
+export type ImageAssetUpsertArgs = $UpsertArgs<$Schema, "ImageAsset">;
+export type ImageAssetDeleteArgs = $DeleteArgs<$Schema, "ImageAsset">;
+export type ImageAssetDeleteManyArgs = $DeleteManyArgs<$Schema, "ImageAsset">;
+export type ImageAssetCountArgs = $CountArgs<$Schema, "ImageAsset">;
+export type ImageAssetAggregateArgs = $AggregateArgs<$Schema, "ImageAsset">;
+export type ImageAssetGroupByArgs = $GroupByArgs<$Schema, "ImageAsset">;
+export type ImageAssetWhereInput = $WhereInput<$Schema, "ImageAsset">;
+export type ImageAssetSelect = $SelectInput<$Schema, "ImageAsset">;
+export type ImageAssetInclude = $IncludeInput<$Schema, "ImageAsset">;
+export type ImageAssetOmit = $OmitInput<$Schema, "ImageAsset">;
+export type ImageAssetUncheckedCreateInput = $UncheckedCreateInput<
+    $Schema,
+    "ImageAsset"
+>;
+export type ImageAssetCheckedCreateInput = $CheckedCreateInput<
+    $Schema,
+    "ImageAsset"
+>;
+export type ImageAssetUncheckedUpdateInput = $UncheckedUpdateInput<
+    $Schema,
+    "ImageAsset"
+>;
+export type ImageAssetCheckedUpdateInput = $CheckedUpdateInput<
+    $Schema,
+    "ImageAsset"
+>;
+export type ImageAssetGetPayload<
+    Args extends $SelectIncludeOmit<$Schema, "ImageAsset", true>,
+    Options extends $QueryOptions<$Schema> = $QueryOptions<$Schema>,
+> = $Result<$Schema, "ImageAsset", Args, Options>;
+export type ItemPlacementFindManyArgs = $FindManyArgs<$Schema, "ItemPlacement">;
+export type ItemPlacementFindUniqueArgs = $FindUniqueArgs<
+    $Schema,
+    "ItemPlacement"
+>;
+export type ItemPlacementFindFirstArgs = $FindFirstArgs<
+    $Schema,
+    "ItemPlacement"
+>;
+export type ItemPlacementExistsArgs = $ExistsArgs<$Schema, "ItemPlacement">;
+export type ItemPlacementCreateArgs = $CreateArgs<$Schema, "ItemPlacement">;
+export type ItemPlacementCreateManyArgs = $CreateManyArgs<
+    $Schema,
+    "ItemPlacement"
+>;
+export type ItemPlacementCreateManyAndReturnArgs = $CreateManyAndReturnArgs<
+    $Schema,
+    "ItemPlacement"
+>;
+export type ItemPlacementUpdateArgs = $UpdateArgs<$Schema, "ItemPlacement">;
+export type ItemPlacementUpdateManyArgs = $UpdateManyArgs<
+    $Schema,
+    "ItemPlacement"
+>;
+export type ItemPlacementUpdateManyAndReturnArgs = $UpdateManyAndReturnArgs<
+    $Schema,
+    "ItemPlacement"
+>;
+export type ItemPlacementUpsertArgs = $UpsertArgs<$Schema, "ItemPlacement">;
+export type ItemPlacementDeleteArgs = $DeleteArgs<$Schema, "ItemPlacement">;
+export type ItemPlacementDeleteManyArgs = $DeleteManyArgs<
+    $Schema,
+    "ItemPlacement"
+>;
+export type ItemPlacementCountArgs = $CountArgs<$Schema, "ItemPlacement">;
+export type ItemPlacementAggregateArgs = $AggregateArgs<
+    $Schema,
+    "ItemPlacement"
+>;
+export type ItemPlacementGroupByArgs = $GroupByArgs<$Schema, "ItemPlacement">;
+export type ItemPlacementWhereInput = $WhereInput<$Schema, "ItemPlacement">;
+export type ItemPlacementSelect = $SelectInput<$Schema, "ItemPlacement">;
+export type ItemPlacementInclude = $IncludeInput<$Schema, "ItemPlacement">;
+export type ItemPlacementOmit = $OmitInput<$Schema, "ItemPlacement">;
+export type ItemPlacementUncheckedCreateInput = $UncheckedCreateInput<
+    $Schema,
+    "ItemPlacement"
+>;
+export type ItemPlacementCheckedCreateInput = $CheckedCreateInput<
+    $Schema,
+    "ItemPlacement"
+>;
+export type ItemPlacementUncheckedUpdateInput = $UncheckedUpdateInput<
+    $Schema,
+    "ItemPlacement"
+>;
+export type ItemPlacementCheckedUpdateInput = $CheckedUpdateInput<
+    $Schema,
+    "ItemPlacement"
+>;
+export type ItemPlacementGetPayload<
+    Args extends $SelectIncludeOmit<$Schema, "ItemPlacement", true>,
+    Options extends $QueryOptions<$Schema> = $QueryOptions<$Schema>,
+> = $Result<$Schema, "ItemPlacement", Args, Options>;
+export type GameTicketFindManyArgs = $FindManyArgs<$Schema, "GameTicket">;
+export type GameTicketFindUniqueArgs = $FindUniqueArgs<$Schema, "GameTicket">;
+export type GameTicketFindFirstArgs = $FindFirstArgs<$Schema, "GameTicket">;
+export type GameTicketExistsArgs = $ExistsArgs<$Schema, "GameTicket">;
+export type GameTicketCreateArgs = $CreateArgs<$Schema, "GameTicket">;
+export type GameTicketCreateManyArgs = $CreateManyArgs<$Schema, "GameTicket">;
+export type GameTicketCreateManyAndReturnArgs = $CreateManyAndReturnArgs<
+    $Schema,
+    "GameTicket"
+>;
+export type GameTicketUpdateArgs = $UpdateArgs<$Schema, "GameTicket">;
+export type GameTicketUpdateManyArgs = $UpdateManyArgs<$Schema, "GameTicket">;
+export type GameTicketUpdateManyAndReturnArgs = $UpdateManyAndReturnArgs<
+    $Schema,
+    "GameTicket"
+>;
+export type GameTicketUpsertArgs = $UpsertArgs<$Schema, "GameTicket">;
+export type GameTicketDeleteArgs = $DeleteArgs<$Schema, "GameTicket">;
+export type GameTicketDeleteManyArgs = $DeleteManyArgs<$Schema, "GameTicket">;
+export type GameTicketCountArgs = $CountArgs<$Schema, "GameTicket">;
+export type GameTicketAggregateArgs = $AggregateArgs<$Schema, "GameTicket">;
+export type GameTicketGroupByArgs = $GroupByArgs<$Schema, "GameTicket">;
+export type GameTicketWhereInput = $WhereInput<$Schema, "GameTicket">;
+export type GameTicketSelect = $SelectInput<$Schema, "GameTicket">;
+export type GameTicketInclude = $IncludeInput<$Schema, "GameTicket">;
+export type GameTicketOmit = $OmitInput<$Schema, "GameTicket">;
+export type GameTicketUncheckedCreateInput = $UncheckedCreateInput<
+    $Schema,
+    "GameTicket"
+>;
+export type GameTicketCheckedCreateInput = $CheckedCreateInput<
+    $Schema,
+    "GameTicket"
+>;
+export type GameTicketUncheckedUpdateInput = $UncheckedUpdateInput<
+    $Schema,
+    "GameTicket"
+>;
+export type GameTicketCheckedUpdateInput = $CheckedUpdateInput<
+    $Schema,
+    "GameTicket"
+>;
+export type GameTicketGetPayload<
+    Args extends $SelectIncludeOmit<$Schema, "GameTicket", true>,
+    Options extends $QueryOptions<$Schema> = $QueryOptions<$Schema>,
+> = $Result<$Schema, "GameTicket", Args, Options>;
+export type MarketRequestFindManyArgs = $FindManyArgs<$Schema, "MarketRequest">;
+export type MarketRequestFindUniqueArgs = $FindUniqueArgs<
+    $Schema,
+    "MarketRequest"
+>;
+export type MarketRequestFindFirstArgs = $FindFirstArgs<
+    $Schema,
+    "MarketRequest"
+>;
+export type MarketRequestExistsArgs = $ExistsArgs<$Schema, "MarketRequest">;
+export type MarketRequestCreateArgs = $CreateArgs<$Schema, "MarketRequest">;
+export type MarketRequestCreateManyArgs = $CreateManyArgs<
+    $Schema,
+    "MarketRequest"
+>;
+export type MarketRequestCreateManyAndReturnArgs = $CreateManyAndReturnArgs<
+    $Schema,
+    "MarketRequest"
+>;
+export type MarketRequestUpdateArgs = $UpdateArgs<$Schema, "MarketRequest">;
+export type MarketRequestUpdateManyArgs = $UpdateManyArgs<
+    $Schema,
+    "MarketRequest"
+>;
+export type MarketRequestUpdateManyAndReturnArgs = $UpdateManyAndReturnArgs<
+    $Schema,
+    "MarketRequest"
+>;
+export type MarketRequestUpsertArgs = $UpsertArgs<$Schema, "MarketRequest">;
+export type MarketRequestDeleteArgs = $DeleteArgs<$Schema, "MarketRequest">;
+export type MarketRequestDeleteManyArgs = $DeleteManyArgs<
+    $Schema,
+    "MarketRequest"
+>;
+export type MarketRequestCountArgs = $CountArgs<$Schema, "MarketRequest">;
+export type MarketRequestAggregateArgs = $AggregateArgs<
+    $Schema,
+    "MarketRequest"
+>;
+export type MarketRequestGroupByArgs = $GroupByArgs<$Schema, "MarketRequest">;
+export type MarketRequestWhereInput = $WhereInput<$Schema, "MarketRequest">;
+export type MarketRequestSelect = $SelectInput<$Schema, "MarketRequest">;
+export type MarketRequestInclude = $IncludeInput<$Schema, "MarketRequest">;
+export type MarketRequestOmit = $OmitInput<$Schema, "MarketRequest">;
+export type MarketRequestUncheckedCreateInput = $UncheckedCreateInput<
+    $Schema,
+    "MarketRequest"
+>;
+export type MarketRequestCheckedCreateInput = $CheckedCreateInput<
+    $Schema,
+    "MarketRequest"
+>;
+export type MarketRequestUncheckedUpdateInput = $UncheckedUpdateInput<
+    $Schema,
+    "MarketRequest"
+>;
+export type MarketRequestCheckedUpdateInput = $CheckedUpdateInput<
+    $Schema,
+    "MarketRequest"
+>;
+export type MarketRequestGetPayload<
+    Args extends $SelectIncludeOmit<$Schema, "MarketRequest", true>,
+    Options extends $QueryOptions<$Schema> = $QueryOptions<$Schema>,
+> = $Result<$Schema, "MarketRequest", Args, Options>;
+export type MarketRateFindManyArgs = $FindManyArgs<$Schema, "MarketRate">;
+export type MarketRateFindUniqueArgs = $FindUniqueArgs<$Schema, "MarketRate">;
+export type MarketRateFindFirstArgs = $FindFirstArgs<$Schema, "MarketRate">;
+export type MarketRateExistsArgs = $ExistsArgs<$Schema, "MarketRate">;
+export type MarketRateCreateArgs = $CreateArgs<$Schema, "MarketRate">;
+export type MarketRateCreateManyArgs = $CreateManyArgs<$Schema, "MarketRate">;
+export type MarketRateCreateManyAndReturnArgs = $CreateManyAndReturnArgs<
+    $Schema,
+    "MarketRate"
+>;
+export type MarketRateUpdateArgs = $UpdateArgs<$Schema, "MarketRate">;
+export type MarketRateUpdateManyArgs = $UpdateManyArgs<$Schema, "MarketRate">;
+export type MarketRateUpdateManyAndReturnArgs = $UpdateManyAndReturnArgs<
+    $Schema,
+    "MarketRate"
+>;
+export type MarketRateUpsertArgs = $UpsertArgs<$Schema, "MarketRate">;
+export type MarketRateDeleteArgs = $DeleteArgs<$Schema, "MarketRate">;
+export type MarketRateDeleteManyArgs = $DeleteManyArgs<$Schema, "MarketRate">;
+export type MarketRateCountArgs = $CountArgs<$Schema, "MarketRate">;
+export type MarketRateAggregateArgs = $AggregateArgs<$Schema, "MarketRate">;
+export type MarketRateGroupByArgs = $GroupByArgs<$Schema, "MarketRate">;
+export type MarketRateWhereInput = $WhereInput<$Schema, "MarketRate">;
+export type MarketRateSelect = $SelectInput<$Schema, "MarketRate">;
+export type MarketRateInclude = $IncludeInput<$Schema, "MarketRate">;
+export type MarketRateOmit = $OmitInput<$Schema, "MarketRate">;
+export type MarketRateUncheckedCreateInput = $UncheckedCreateInput<
+    $Schema,
+    "MarketRate"
+>;
+export type MarketRateCheckedCreateInput = $CheckedCreateInput<
+    $Schema,
+    "MarketRate"
+>;
+export type MarketRateUncheckedUpdateInput = $UncheckedUpdateInput<
+    $Schema,
+    "MarketRate"
+>;
+export type MarketRateCheckedUpdateInput = $CheckedUpdateInput<
+    $Schema,
+    "MarketRate"
+>;
+export type MarketRateGetPayload<
+    Args extends $SelectIncludeOmit<$Schema, "MarketRate", true>,
+    Options extends $QueryOptions<$Schema> = $QueryOptions<$Schema>,
+> = $Result<$Schema, "MarketRate", Args, Options>;
+export type WorldRevisionFindManyArgs = $FindManyArgs<$Schema, "WorldRevision">;
+export type WorldRevisionFindUniqueArgs = $FindUniqueArgs<
+    $Schema,
+    "WorldRevision"
+>;
+export type WorldRevisionFindFirstArgs = $FindFirstArgs<
+    $Schema,
+    "WorldRevision"
+>;
+export type WorldRevisionExistsArgs = $ExistsArgs<$Schema, "WorldRevision">;
+export type WorldRevisionCreateArgs = $CreateArgs<$Schema, "WorldRevision">;
+export type WorldRevisionCreateManyArgs = $CreateManyArgs<
+    $Schema,
+    "WorldRevision"
+>;
+export type WorldRevisionCreateManyAndReturnArgs = $CreateManyAndReturnArgs<
+    $Schema,
+    "WorldRevision"
+>;
+export type WorldRevisionUpdateArgs = $UpdateArgs<$Schema, "WorldRevision">;
+export type WorldRevisionUpdateManyArgs = $UpdateManyArgs<
+    $Schema,
+    "WorldRevision"
+>;
+export type WorldRevisionUpdateManyAndReturnArgs = $UpdateManyAndReturnArgs<
+    $Schema,
+    "WorldRevision"
+>;
+export type WorldRevisionUpsertArgs = $UpsertArgs<$Schema, "WorldRevision">;
+export type WorldRevisionDeleteArgs = $DeleteArgs<$Schema, "WorldRevision">;
+export type WorldRevisionDeleteManyArgs = $DeleteManyArgs<
+    $Schema,
+    "WorldRevision"
+>;
+export type WorldRevisionCountArgs = $CountArgs<$Schema, "WorldRevision">;
+export type WorldRevisionAggregateArgs = $AggregateArgs<
+    $Schema,
+    "WorldRevision"
+>;
+export type WorldRevisionGroupByArgs = $GroupByArgs<$Schema, "WorldRevision">;
+export type WorldRevisionWhereInput = $WhereInput<$Schema, "WorldRevision">;
+export type WorldRevisionSelect = $SelectInput<$Schema, "WorldRevision">;
+export type WorldRevisionInclude = $IncludeInput<$Schema, "WorldRevision">;
+export type WorldRevisionOmit = $OmitInput<$Schema, "WorldRevision">;
+export type WorldRevisionUncheckedCreateInput = $UncheckedCreateInput<
+    $Schema,
+    "WorldRevision"
+>;
+export type WorldRevisionCheckedCreateInput = $CheckedCreateInput<
+    $Schema,
+    "WorldRevision"
+>;
+export type WorldRevisionUncheckedUpdateInput = $UncheckedUpdateInput<
+    $Schema,
+    "WorldRevision"
+>;
+export type WorldRevisionCheckedUpdateInput = $CheckedUpdateInput<
+    $Schema,
+    "WorldRevision"
+>;
+export type WorldRevisionGetPayload<
+    Args extends $SelectIncludeOmit<$Schema, "WorldRevision", true>,
+    Options extends $QueryOptions<$Schema> = $QueryOptions<$Schema>,
+> = $Result<$Schema, "WorldRevision", Args, Options>;

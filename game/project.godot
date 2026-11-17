@@ -11,14 +11,18 @@ config_version=5
 [application]
 
 config/name="ThriftWalk"
-run/main_scene="uid://ba3x4t1pfxjnt"
+run/main_scene="res://scenes/app/login.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
 [autoload]
 
-Server="uid://dni71xbjlpq0m"
-Context="*uid://cq1nxpbpp7byn"
+Api="*res://scripts/app/api.gd"
+InputMode="*res://scripts/app/input_mode.gd"
+Server="*res://scripts/server/server.gd"
+Market="*res://scripts/store/market.gd"
+AppUI="*res://scripts/app/app_ui.gd"
+Context="*res://scripts/interactive/context.gd"
 
 [debug]
 
@@ -30,10 +34,6 @@ gdscript/warnings/unsafe_call_argument=2
 [display]
 
 window/stretch/mode="canvas_items"
-
-[gui]
-
-theme/custom_font="uid://bn6m52mtn33wa"
 
 [input]
 
