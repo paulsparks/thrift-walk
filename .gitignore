@@ -10,3 +10,9 @@ devenv.local.yaml
 .pre-commit-config.yaml
 
 .env
+
+# 3D scan worker: cloned MASt3R repo, model weights, Python caches
+worker/mast3r/
+worker/.venv/
+__pycache__/
+*.pth

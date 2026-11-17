@@ -33,6 +33,34 @@ Once you have the necessary background services running and secretspec configure
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+#### Worker (3D scanning)
+
+Uploaded item photos are turned into `.glb` models by a Python worker in
+`worker/` (MASt3R for reconstruction, Open3D for cleanup and meshing). The web
+app queues jobs in Redis, and the worker picks them up. A CUDA GPU is strongly
+recommended; MASt3R on CPU takes minutes per scan.
+
+One-time setup, from the repo root inside `devenv shell`:
+
+```bash
+# MASt3R (and its DUSt3R submodule). This folder is gitignored.
+git clone --recursive https://github.com/naver/mast3r.git worker/mast3r
+
+# PyTorch first. Pick the build that matches your CUDA version from
+# https://pytorch.org/get-started/locally/ (cu128 shown here).
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+
+pip install -r web/worker/mast3r/requirements.txt
+pip install -r web/worker/mast3r/dust3r/requirements.txt
+pip install -r worker/requirements.txt
+```
+
+Then, with `devenv up -d` running, start the worker with `worker-s`. Scan photos
+and finished models are stored in `SCAN_STORAGE_DIR` (see `secretspec.toml`).
+The MASt3R model weights download from Hugging Face on first use.
+
+Note that MASt3R's code and weights are released for non-commercial use.
+
 #### Game
 
 Development for the Game will take place in **Godot 4.7**.

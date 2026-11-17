@@ -13,6 +13,7 @@
             "!**/.devenv",
             "!**/.direnv",
             "!**/.next",
+            "!**/worker/mast3r",
             "!**/dist",
             "!**/result",
             "!**/build"

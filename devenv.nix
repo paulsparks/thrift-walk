@@ -18,9 +18,38 @@
     prisma-engines_6
     biome
     lefthook
+
+    # Native libraries that pip-installed PyTorch / Open3D wheels expect.
+    # Without these, importing them on Nix/WSL fails with
+    # "libstdc++.so.6 / libGL.so.1: cannot open shared object file".
+    stdenv.cc.cc.lib
+    zlib
+    libGL
+    glib
+    libX11
+    systemd
+    libusb1
+    libidn2
+    tbb
   ];
 
   env = {
+    # WSL2 exposes the Windows NVIDIA driver (libcuda.so) in /usr/lib/wsl/lib;
+    # PyTorch needs it to use the GPU.
+    LD_LIBRARY_PATH =
+      (lib.makeLibraryPath [
+        pkgs.stdenv.cc.cc.lib
+        pkgs.zlib
+        pkgs.libGL
+        pkgs.glib
+        pkgs.libX11
+        pkgs.systemd
+        pkgs.libusb1
+        pkgs.libidn2
+        pkgs.tbb
+      ])
+      + ":/usr/lib/wsl/lib";
+
     PRISMA_SCHEMA_ENGINE_BINARY = "${pkgs.prisma-engines_6}/bin/schema-engine";
 
     PRISMA_QUERY_ENGINE_BINARY = "${pkgs.prisma-engines_6}/bin/query-engine";
@@ -61,6 +90,22 @@
     port = 5432;
   };
 
+  # Job queue between the Next.js app and the 3D scan worker (worker/).
+  services.redis = {
+    enable = true;
+    bind = "127.0.0.1";
+    port = 6379;
+  };
+
+  # Python environment for the 3D scan worker. Pinned to 3.12 because
+  # PyTorch / Open3D wheels lag behind the newest Python release.
+  # Install the packages yourself once (see the Worker section of the README).
+  languages.python = {
+    enable = true;
+    package = pkgs.python312;
+    venv.enable = true;
+  };
+
   scripts.motd = {
     exec = ''
       echo "--- Dev Environment ---"
@@ -71,7 +116,8 @@
       echo "                                        "
       echo "To get started, run 'devenv up -d' to   "
       echo "start the provided services. Then, run  "
-      echo "'pnpm-s run dev' to start the server.   "
+      echo "'pnpm-s run dev' to start the server    "
+      echo "and 'worker-s' for the 3D scan worker.  "
       echo "-----------------------"
     '';
     description = "Writes the start message with useful instructions";
@@ -80,6 +126,11 @@
   scripts.pnpm-s = {
     exec = "secretspec run -- pnpm $@";
     description = "Runs pnpm with secrets injected (via secretspec)";
+  };
+
+  scripts.worker-s = {
+    exec = "secretspec run -- python worker/run_worker.py $@";
+    description = "Runs the 3D scan worker with secrets injected (run from the repo root)";
   };
 
   enterShell = ''

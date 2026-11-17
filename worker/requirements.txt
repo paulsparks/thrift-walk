@@ -1,0 +1,9 @@
+# Install torch and torchvision first, matching your CUDA version
+# (see "Worker (3D scanning)" in the README), then MASt3R's own requirements.
+numpy
+open3d
+trimesh
+Pillow
+pillow-heif
+redis
+psycopg[binary]

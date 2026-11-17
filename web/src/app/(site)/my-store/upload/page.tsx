@@ -1,6 +1,5 @@
-import type { ReactNode } from "react";
-
 import { ScanDropzone } from "@/components/scan-dropzone";
+import { ScanList } from "@/components/scan-list";
 
 export const metadata = {
     title: "3D Scan | ThriftWalk",
@@ -20,52 +19,6 @@ const tips = [
     {
         title: "Steady camera",
         text: "Blurred photos lead to messy scans. Use a tripod if possible.",
-    },
-];
-
-const iconProps = {
-    className: "size-8",
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 2,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-    "aria-hidden": true,
-};
-
-// Placeholder scans from the wireframe. Replace with real scan jobs.
-const scans: {
-    name: string;
-    stage: string;
-    percent: number;
-    bar: string;
-    icon: ReactNode;
-}[] = [
-    {
-        name: "Vintage Denim Jacket",
-        stage: "Processing meshes",
-        percent: 65,
-        bar: "progress-secondary",
-        icon: (
-            <svg {...iconProps}>
-                <title>Jacket</title>
-                <path d="M8 3l4 2 4-2 6 3-2 4-2-1v11H6V9l-2 1-2-4z" />
-            </svg>
-        ),
-    },
-    {
-        name: "Analog Camera (Draft)",
-        stage: "Waiting for images…",
-        percent: 20,
-        bar: "progress-info",
-        icon: (
-            <svg {...iconProps}>
-                <title>Camera</title>
-                <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
-                <circle cx="12" cy="13" r="3.5" />
-            </svg>
-        ),
     },
 ];
 
@@ -121,43 +74,7 @@ export default function ScanPage() {
                     </ol>
                 </section>
 
-                <section className="mt-12">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                        <h2 className="font-display text-3xl font-extrabold tracking-tight">
-                            Recent processing
-                        </h2>
-                        <span className="badge badge-accent badge-lg font-semibold">
-                            {scans.length} active scans
-                        </span>
-                    </div>
-                    <ul className="mt-6 grid gap-4">
-                        {scans.map((scan) => (
-                            <li
-                                key={scan.name}
-                                className="card card-border flex-row items-center gap-5 border-base-content bg-base-100 p-5"
-                            >
-                                <div className="grid size-16 shrink-0 place-items-center rounded-lg border-2 border-base-content bg-base-200">
-                                    {scan.icon}
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <h3 className="font-display text-lg font-extrabold">
-                                        {scan.name}
-                                    </h3>
-                                    <progress
-                                        className={`progress ${scan.bar} mt-2 w-full`}
-                                        value={scan.percent}
-                                        max={100}
-                                        aria-label={`${scan.name} scan progress`}
-                                    />
-                                    <div className="mt-1 flex justify-between text-xs font-semibold tracking-wide uppercase opacity-70">
-                                        <span>{scan.stage}</span>
-                                        <span>{scan.percent}%</span>
-                                    </div>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                </section>
+                <ScanList />
             </div>
         </main>
     );
