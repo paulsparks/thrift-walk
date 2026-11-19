@@ -6,7 +6,7 @@
 [ext_resource type="AudioStream" uid="uid://cmbu4h7ehfind" path="res://Audio/06-footstep.ogg" id="5_874ku"]
 
 [resource]
-streams_count = 5
+streams_count = 4
 stream_0/stream = ExtResource("1_u3mmh")
 stream_1/stream = ExtResource("2_yxpma")
 stream_2/stream = ExtResource("3_2shhl")
