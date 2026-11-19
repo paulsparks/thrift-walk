@@ -1,0 +1,13 @@
+[gd_resource type="AudioStreamRandomizer" format=3 uid="uid://ckpfooxrxnnnf"]
+
+[ext_resource type="AudioStream" uid="uid://dpqa77f6whkdj" path="res://Audio/01-footstep.ogg" id="1_u3mmh"]
+[ext_resource type="AudioStream" uid="uid://d2rocrb7drrie" path="res://Audio/02-footstep.ogg" id="2_yxpma"]
+[ext_resource type="AudioStream" uid="uid://cfdgmgppb75ge" path="res://Audio/03-footstep (1).ogg" id="3_2shhl"]
+[ext_resource type="AudioStream" uid="uid://cmbu4h7ehfind" path="res://Audio/06-footstep.ogg" id="5_874ku"]
+
+[resource]
+streams_count = 5
+stream_0/stream = ExtResource("1_u3mmh")
+stream_1/stream = ExtResource("2_yxpma")
+stream_2/stream = ExtResource("3_2shhl")
+stream_3/stream = ExtResource("5_874ku")
