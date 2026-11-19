@@ -40,6 +40,11 @@ var _last_collider: CollisionObject3D = null
 @onready var camera: Camera3D = $Camera3D
 @onready var ui: Control = $PlayerUI
 @onready var playermodel: MeshInstance3D = $Playermodel
+@onready var footstep_audio: AudioStreamPlayer3D = $FootStepsAudio
+
+var footstep_timer: float = 0.0
+const WALK_STEP_INTERVAL: float = 0.45
+const SPRINT_STEP_INTERVAL: float = 0.30
 
 
 func _ready() -> void:
@@ -97,7 +102,7 @@ func _physics_process(delta: float) -> void:
 		else:
 			_apply_remote_server_state(delta)
 	_update_head_bob(delta)
-
+	_update_footsteps(delta)
 
 func _submit_and_predict_local_input(delta: float) -> void:
 	var input_frame := PlayerInputFrame.new()
@@ -228,7 +233,24 @@ func _reconcile_prediction(delta: float) -> void:
 	global_position = predicted_position.lerp(replayed_position, correction_weight)
 	velocity = predicted_velocity.lerp(replayed_velocity, correction_weight)
 
+func _update_footsteps(delta: float) -> void:
+	if not _is_local_controller():
+		return
 
+	var horizontal_speed := Vector2(velocity.x, velocity.z).length()
+	var grounded := is_on_floor() or _server_on_floor
+
+	if not grounded or horizontal_speed < 0.2:
+		footstep_timer = 0.0
+		return
+
+	var sprinting := Input.is_action_pressed("sprint")
+	var interval := SPRINT_STEP_INTERVAL if sprinting else WALK_STEP_INTERVAL
+
+	footstep_timer -= delta
+	if footstep_timer <= 0.0:
+		footstep_audio.play()
+		footstep_timer = interval
 func _update_head_bob(delta: float) -> void:
 	var grounded := is_on_floor() if _is_local_controller() else _server_on_floor
 	_view.update_head_bob(delta, velocity, grounded)
