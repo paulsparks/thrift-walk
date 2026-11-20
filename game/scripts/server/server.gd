@@ -358,6 +358,8 @@ func _command(command: Dictionary) -> void:
 		if (
 			typeof(command.get("x")) not in [TYPE_FLOAT, TYPE_INT]
 			or typeof(command.get("y")) not in [TYPE_FLOAT, TYPE_INT]
+			or typeof(command.get("z", -1.94)) not in [TYPE_FLOAT, TYPE_INT]
+			or typeof(command.get("yaw", 0.0)) not in [TYPE_FLOAT, TYPE_INT]
 		):
 			_command_result.rpc_id(
 				id,
@@ -370,10 +372,17 @@ func _command(command: Dictionary) -> void:
 			_commands.erase(id)
 			return
 		var position := Vector3(
-			command.get("x", NAN) as float, command.get("y", NAN) as float, -1.94
+			command.get("x", NAN) as float,
+			command.get("y", NAN) as float,
+			command.get("z", -1.94) as float
 		)
 		var reason := Market.validate_position(
-			position, _players[id].camera.global_position, _players[id], false
+			position,
+			_players[id].camera.global_position,
+			_players[id],
+			false,
+			str(command.get("surfaceId", "demo-board")),
+			command.get("yaw", 0.0) as float
 		)
 		if not reason.is_empty():
 			_command_result.rpc_id(
@@ -385,11 +394,11 @@ func _command(command: Dictionary) -> void:
 		payload.merge(
 			{
 				"worldId": "demo_store",
-				"surfaceId": "demo-board",
+				"surfaceId": str(command.get("surfaceId", "demo-board")),
 				"x": position.x,
 				"y": position.y,
 				"z": position.z,
-				"yaw": 0
+				"yaw": command.get("yaw", 0.0) as float
 			}
 		)
 	elif op == "remove":

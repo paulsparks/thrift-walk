@@ -70,6 +70,64 @@ export type UserGetPayload<
     Args extends $SelectIncludeOmit<$Schema, "User", true>,
     Options extends $QueryOptions<$Schema> = $QueryOptions<$Schema>,
 > = $Result<$Schema, "User", Args, Options>;
+export type ApprovalCodeFindManyArgs = $FindManyArgs<$Schema, "ApprovalCode">;
+export type ApprovalCodeFindUniqueArgs = $FindUniqueArgs<
+    $Schema,
+    "ApprovalCode"
+>;
+export type ApprovalCodeFindFirstArgs = $FindFirstArgs<$Schema, "ApprovalCode">;
+export type ApprovalCodeExistsArgs = $ExistsArgs<$Schema, "ApprovalCode">;
+export type ApprovalCodeCreateArgs = $CreateArgs<$Schema, "ApprovalCode">;
+export type ApprovalCodeCreateManyArgs = $CreateManyArgs<
+    $Schema,
+    "ApprovalCode"
+>;
+export type ApprovalCodeCreateManyAndReturnArgs = $CreateManyAndReturnArgs<
+    $Schema,
+    "ApprovalCode"
+>;
+export type ApprovalCodeUpdateArgs = $UpdateArgs<$Schema, "ApprovalCode">;
+export type ApprovalCodeUpdateManyArgs = $UpdateManyArgs<
+    $Schema,
+    "ApprovalCode"
+>;
+export type ApprovalCodeUpdateManyAndReturnArgs = $UpdateManyAndReturnArgs<
+    $Schema,
+    "ApprovalCode"
+>;
+export type ApprovalCodeUpsertArgs = $UpsertArgs<$Schema, "ApprovalCode">;
+export type ApprovalCodeDeleteArgs = $DeleteArgs<$Schema, "ApprovalCode">;
+export type ApprovalCodeDeleteManyArgs = $DeleteManyArgs<
+    $Schema,
+    "ApprovalCode"
+>;
+export type ApprovalCodeCountArgs = $CountArgs<$Schema, "ApprovalCode">;
+export type ApprovalCodeAggregateArgs = $AggregateArgs<$Schema, "ApprovalCode">;
+export type ApprovalCodeGroupByArgs = $GroupByArgs<$Schema, "ApprovalCode">;
+export type ApprovalCodeWhereInput = $WhereInput<$Schema, "ApprovalCode">;
+export type ApprovalCodeSelect = $SelectInput<$Schema, "ApprovalCode">;
+export type ApprovalCodeInclude = $IncludeInput<$Schema, "ApprovalCode">;
+export type ApprovalCodeOmit = $OmitInput<$Schema, "ApprovalCode">;
+export type ApprovalCodeUncheckedCreateInput = $UncheckedCreateInput<
+    $Schema,
+    "ApprovalCode"
+>;
+export type ApprovalCodeCheckedCreateInput = $CheckedCreateInput<
+    $Schema,
+    "ApprovalCode"
+>;
+export type ApprovalCodeUncheckedUpdateInput = $UncheckedUpdateInput<
+    $Schema,
+    "ApprovalCode"
+>;
+export type ApprovalCodeCheckedUpdateInput = $CheckedUpdateInput<
+    $Schema,
+    "ApprovalCode"
+>;
+export type ApprovalCodeGetPayload<
+    Args extends $SelectIncludeOmit<$Schema, "ApprovalCode", true>,
+    Options extends $QueryOptions<$Schema> = $QueryOptions<$Schema>,
+> = $Result<$Schema, "ApprovalCode", Args, Options>;
 export type SessionFindManyArgs = $FindManyArgs<$Schema, "Session">;
 export type SessionFindUniqueArgs = $FindUniqueArgs<$Schema, "Session">;
 export type SessionFindFirstArgs = $FindFirstArgs<$Schema, "Session">;
@@ -704,3 +762,96 @@ export type ScanJobGetPayload<
     Args extends $SelectIncludeOmit<$Schema, "ScanJob", true>,
     Options extends $QueryOptions<$Schema> = $QueryOptions<$Schema>,
 > = $Result<$Schema, "ScanJob", Args, Options>;
+export type ScanRunpodDispatchFindManyArgs = $FindManyArgs<
+    $Schema,
+    "ScanRunpodDispatch"
+>;
+export type ScanRunpodDispatchFindUniqueArgs = $FindUniqueArgs<
+    $Schema,
+    "ScanRunpodDispatch"
+>;
+export type ScanRunpodDispatchFindFirstArgs = $FindFirstArgs<
+    $Schema,
+    "ScanRunpodDispatch"
+>;
+export type ScanRunpodDispatchExistsArgs = $ExistsArgs<
+    $Schema,
+    "ScanRunpodDispatch"
+>;
+export type ScanRunpodDispatchCreateArgs = $CreateArgs<
+    $Schema,
+    "ScanRunpodDispatch"
+>;
+export type ScanRunpodDispatchCreateManyArgs = $CreateManyArgs<
+    $Schema,
+    "ScanRunpodDispatch"
+>;
+export type ScanRunpodDispatchCreateManyAndReturnArgs =
+    $CreateManyAndReturnArgs<$Schema, "ScanRunpodDispatch">;
+export type ScanRunpodDispatchUpdateArgs = $UpdateArgs<
+    $Schema,
+    "ScanRunpodDispatch"
+>;
+export type ScanRunpodDispatchUpdateManyArgs = $UpdateManyArgs<
+    $Schema,
+    "ScanRunpodDispatch"
+>;
+export type ScanRunpodDispatchUpdateManyAndReturnArgs =
+    $UpdateManyAndReturnArgs<$Schema, "ScanRunpodDispatch">;
+export type ScanRunpodDispatchUpsertArgs = $UpsertArgs<
+    $Schema,
+    "ScanRunpodDispatch"
+>;
+export type ScanRunpodDispatchDeleteArgs = $DeleteArgs<
+    $Schema,
+    "ScanRunpodDispatch"
+>;
+export type ScanRunpodDispatchDeleteManyArgs = $DeleteManyArgs<
+    $Schema,
+    "ScanRunpodDispatch"
+>;
+export type ScanRunpodDispatchCountArgs = $CountArgs<
+    $Schema,
+    "ScanRunpodDispatch"
+>;
+export type ScanRunpodDispatchAggregateArgs = $AggregateArgs<
+    $Schema,
+    "ScanRunpodDispatch"
+>;
+export type ScanRunpodDispatchGroupByArgs = $GroupByArgs<
+    $Schema,
+    "ScanRunpodDispatch"
+>;
+export type ScanRunpodDispatchWhereInput = $WhereInput<
+    $Schema,
+    "ScanRunpodDispatch"
+>;
+export type ScanRunpodDispatchSelect = $SelectInput<
+    $Schema,
+    "ScanRunpodDispatch"
+>;
+export type ScanRunpodDispatchInclude = $IncludeInput<
+    $Schema,
+    "ScanRunpodDispatch"
+>;
+export type ScanRunpodDispatchOmit = $OmitInput<$Schema, "ScanRunpodDispatch">;
+export type ScanRunpodDispatchUncheckedCreateInput = $UncheckedCreateInput<
+    $Schema,
+    "ScanRunpodDispatch"
+>;
+export type ScanRunpodDispatchCheckedCreateInput = $CheckedCreateInput<
+    $Schema,
+    "ScanRunpodDispatch"
+>;
+export type ScanRunpodDispatchUncheckedUpdateInput = $UncheckedUpdateInput<
+    $Schema,
+    "ScanRunpodDispatch"
+>;
+export type ScanRunpodDispatchCheckedUpdateInput = $CheckedUpdateInput<
+    $Schema,
+    "ScanRunpodDispatch"
+>;
+export type ScanRunpodDispatchGetPayload<
+    Args extends $SelectIncludeOmit<$Schema, "ScanRunpodDispatch", true>,
+    Options extends $QueryOptions<$Schema> = $QueryOptions<$Schema>,
+> = $Result<$Schema, "ScanRunpodDispatch", Args, Options>;

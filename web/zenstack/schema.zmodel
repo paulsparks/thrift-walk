@@ -18,6 +18,7 @@ model User {
     bio           String         @default("")
     email         String         @unique
     emailVerified Boolean        @default(false)
+    approved      Boolean        @default(false)
     image         String?
     createdAt     DateTime       @default(now())
     updatedAt     DateTime       @default(now()) @updatedAt
@@ -32,6 +33,12 @@ model User {
 
     @@map('user')
     @@allow('read', auth().id == id)
+}
+
+// Internal, single-use invitations. No generic API access.
+model ApprovalCode {
+    code String @id
+    @@map("approval_code")
 }
 
 model Session {
@@ -93,6 +100,9 @@ model Item {
     store Store? @relation(fields: [storeId], references: [id], onDelete: Cascade)
     imageAssetId String?
     imageAsset ImageAsset? @relation(fields: [imageAssetId], references: [id])
+    scanJobId String?
+    scanJob ScanJob? @relation(fields: [scanJobId], references: [id], onDelete: Restrict)
+    @@index([scanJobId])
     externalUrl String?
     placement ItemPlacement?
 
@@ -229,7 +239,7 @@ procedure marketStores(): MarketStores
 mutation procedure marketCreateStore(name: String, receipt: MarketReceipt): MarketStore
 mutation procedure marketDeleteStore(id: String, receipt: MarketReceipt): MarketId
 procedure marketInventory(storeId: String): Json
-mutation procedure marketSaveItem(storeId: String, id: String?, name: String, details: String, imageAssetId: String, externalUrl: String, receipt: MarketReceipt): MarketId
+mutation procedure marketSaveItem(storeId: String, id: String?, name: String, details: String, imageAssetId: String?, scanJobId: String?, externalUrl: String, receipt: MarketReceipt): MarketId
 mutation procedure marketDeleteItem(storeId: String, id: String, receipt: MarketReceipt): MarketId
 procedure marketWishlist(itemId: String): MarketSaved
 mutation procedure marketSetWishlist(itemId: String, saved: Boolean, receipt: MarketReceipt): MarketSaved
@@ -256,6 +266,7 @@ type MarketFrame {
     details String
     externalUrl String?
     imageAssetId String?
+    scanJobId String?
     storeName String
 }
 enum ScanStatus {
@@ -275,6 +286,8 @@ model ScanJob {
     progress   Int        @default(0)
     // Paths relative to SCAN_STORAGE_DIR, e.g. "<jobId>/01.jpg"
     imagePaths String[]
+    items      Item[]
+    runpodDispatch ScanRunpodDispatch?
     glbPath    String?
     error      String?
     ownerId    String
@@ -284,4 +297,15 @@ model ScanJob {
 
     @@map('scan_job')
     @@allow('read', auth().id == ownerId)
+}
+
+// Internal dispatcher journal. No client read/write policies.
+model ScanRunpodDispatch {
+    jobId String @id @map('job_id')
+    job ScanJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+    remoteId String? @map('remote_id')
+    expiresAt DateTime @map('expires_at') @db.Timestamptz()
+    createdAt DateTime @default(now()) @map('created_at') @db.Timestamptz()
+
+    @@map('scan_runpod_dispatch')
 }

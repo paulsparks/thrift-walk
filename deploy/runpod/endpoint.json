@@ -1,0 +1,49 @@
+{
+  "name": "thrift-walk-scans",
+  "image": "ghcr.io/paulsparks/thrift-walk-worker@sha256:23e1f496542f9e5c00dcd0e6b2ce7c5c9e2718f4ea1b0cfb003cea0de826b8b2",
+  "type": "QUEUE",
+  "gpu": {
+    "pools": [
+      "AMPERE_24"
+    ],
+    "excludedTypes": [
+      "NVIDIA RTX PRO 6000 Blackwell Server Edition MIG 1g.24gb"
+    ],
+    "count": 1,
+    "minCudaVersion": "12.8"
+  },
+  "workers": {
+    "min": 0,
+    "max": 3,
+    "idleTimeout": 5
+  },
+  "scaling": {
+    "type": "QUEUE_DELAY",
+    "queueDelay": 4
+  },
+  "timeout": 1200000,
+  "disk": 20,
+  "dataCenterIds": [
+    "CA-MTL-1",
+    "CA-MTL-3",
+    "CA-MTL-4",
+    "US-CA-2",
+    "US-CO-1",
+    "US-GA-2",
+    "US-IL-1",
+    "US-KS-2",
+    "US-MD-1",
+    "US-MO-1",
+    "US-MO-2",
+    "US-NC-1",
+    "US-NC-2",
+    "US-NC-3",
+    "US-NE-1",
+    "US-PA-1",
+    "US-TX-3",
+    "US-TX-4",
+    "US-WA-1",
+    "US-WA-2"
+  ],
+  "flashboot": "FLASHBOOT"
+}

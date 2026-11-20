@@ -1,0 +1,17 @@
+# Queue SDK pinned to the established runpod.serverless handler contract.
+runpod==1.10.1
+requests==2.34.2
+numpy==1.26.4
+open3d==0.19.0
+trimesh==4.6.8
+Pillow==11.2.1
+pillow-heif==0.22.0
+scikit-learn==1.6.1
+roma==1.5.2
+matplotlib==3.10.1
+tqdm==4.67.1
+opencv-python-headless==4.11.0.86
+scipy==1.15.2
+einops==0.8.1
+huggingface-hub==0.30.2
+safetensors==0.5.3

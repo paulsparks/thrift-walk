@@ -13,7 +13,7 @@ export async function GET(
             headers: {
                 "Content-Type": "image/webp",
                 "X-Content-Type-Options": "nosniff",
-                "Cache-Control": "public, max-age=3600",
+                "Cache-Control": "private, no-store",
             },
         });
     } catch {

@@ -12,7 +12,7 @@ import type { SchemaType } from "~/zenstack/schema";
  */
 export async function getSessionDb() {
     const session = await auth.api.getSession({ headers: await headers() });
-    if (!session) return null;
+    if (!session?.user.approved) return null;
 
     const userContext: AuthType<SchemaType> = {
         ...session.user,

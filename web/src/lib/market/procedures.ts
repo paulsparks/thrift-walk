@@ -110,8 +110,10 @@ async function owner(tx: Tx, uid: string, storeId: string) {
 async function identity(tx: Tx, sessionId: string) {
     const session = await tx.$qb
         .selectFrom("Session")
-        .select("userId")
-        .where("id", "=", text(sessionId, "Session ID"))
+        .innerJoin("User", "User.id", "Session.userId")
+        .select("Session.userId")
+        .where("User.approved", "=", true)
+        .where("Session.id", "=", text(sessionId, "Session ID"))
         .where("expiresAt", ">", (eb) => eb.fn<string>("now", []))
         .forShare()
         .executeTakeFirst();
@@ -124,7 +126,11 @@ async function placementWrite<T>(
     args: { sessionId: string; itemId: string; receipt: MarketReceipt },
     fn: (
         tx: Tx,
-        item: { imageAssetId: string | null; externalUrl: string | null },
+        item: {
+            imageAssetId: string | null;
+            scanJobId: string | null;
+            externalUrl: string | null;
+        },
     ) => Promise<T>,
 ) {
     const uid = await client.$transaction((tx) => identity(tx, args.sessionId));
@@ -140,7 +146,7 @@ async function placementWrite<T>(
         const item = await tx.$qb
             .selectFrom("Item")
             .innerJoin("Store", "Store.id", "Item.storeId")
-            .select(["Item.imageAssetId", "Item.externalUrl"])
+            .select(["Item.imageAssetId", "Item.scanJobId", "Item.externalUrl"])
             .where("Item.id", "=", text(args.itemId, "Item ID"))
             .where("Store.ownerId", "=", uid)
             .forUpdate("Item")
@@ -216,31 +222,69 @@ export const marketProcedures = {
                 }))
             )
                 fail(404, "NOT_FOUND", "Item not found.");
+            if (!!args.imageAssetId === !!args.scanJobId)
+                fail(
+                    422,
+                    "INVALID_MEDIA",
+                    "Choose either an image or a completed 3D scan.",
+                );
             const data = {
                 name: text(args.name, "Title"),
                 details: text(args.details, "Description", 5000),
                 externalUrl: listingUrl(args.externalUrl),
-                imageAssetId: text(args.imageAssetId, "Image"),
+                imageAssetId: args.imageAssetId
+                    ? text(args.imageAssetId, "Image")
+                    : null,
+                scanJobId: args.scanJobId
+                    ? text(args.scanJobId, "3D scan")
+                    : null,
             };
-            const image = await tx.$qb
-                .selectFrom("ImageAsset")
-                .select("id")
-                .where("id", "=", data.imageAssetId)
-                .where("ownerId", "=", uid)
-                .forShare()
-                .executeTakeFirst();
-            if (!image)
-                fail(
-                    422,
-                    "INVALID_IMAGE",
-                    "Upload an image owned by this account.",
-                );
-            if (args.id)
+            if (data.imageAssetId) {
+                const image = await tx.$qb
+                    .selectFrom("ImageAsset")
+                    .select("id")
+                    .where("id", "=", data.imageAssetId)
+                    .where("ownerId", "=", uid)
+                    .forShare()
+                    .executeTakeFirst();
+                if (!image)
+                    fail(
+                        422,
+                        "INVALID_IMAGE",
+                        "Upload an image owned by this account.",
+                    );
+            } else {
+                const scan = await tx.$qb
+                    .selectFrom("ScanJob")
+                    .select("id")
+                    .where("id", "=", text(data.scanJobId, "3D scan"))
+                    .where("ownerId", "=", uid)
+                    .where("status", "=", "Completed")
+                    .where("glbPath", "is not", null)
+                    .forShare()
+                    .executeTakeFirst();
+                if (!scan)
+                    fail(
+                        422,
+                        "INVALID_SCAN",
+                        "Choose a completed 3D scan owned by this account.",
+                    );
+            }
+            if (args.id) {
+                const previous = await tx.item.findUniqueOrThrow({
+                    where: { id: args.id },
+                    select: { scanJobId: true },
+                });
+                if (!!previous.scanJobId !== !!data.scanJobId)
+                    await tx.itemPlacement.deleteMany({
+                        where: { itemId: args.id },
+                    });
                 return tx.item.update({
                     where: { id: args.id },
                     data,
                     select: { id: true },
                 });
+            }
             return tx.item.create({
                 data: { ...data, id: randomUUID(), storeId: args.storeId },
                 select: { id: true },
@@ -350,6 +394,7 @@ export const marketProcedures = {
                                       details: item.details,
                                       externalUrl: item.externalUrl,
                                       imageAssetId: item.imageAssetId,
+                                      scanJobId: item.scanJobId,
                                       storeName: item.store.name,
                                   },
                               ]
@@ -387,8 +432,19 @@ export const marketProcedures = {
         })),
     marketPlace: async ({ client, args }) =>
         placementWrite(client, args, async (tx, item) => {
-            if (!item.imageAssetId || !item.externalUrl)
+            if ((!item.imageAssetId && !item.scanJobId) || !item.externalUrl)
                 fail(422, "INCOMPLETE_ITEM", "Finish setup in browser.");
+            const expectedSurface = item.scanJobId
+                ? "lobby-table"
+                : "demo-board";
+            if (args.surfaceId !== expectedSurface)
+                fail(
+                    422,
+                    "WRONG_SURFACE",
+                    item.scanJobId
+                        ? "Place 3D models on a table."
+                        : "Place image frames on a wall.",
+                );
             const p = placement(args);
             if (
                 await tx.itemPlacement.findUnique({
@@ -401,16 +457,23 @@ export const marketProcedures = {
                     "ALREADY_PLACED",
                     "Item is already placed. Refresh inventory.",
                 );
-            // Express the absolute-distance overlap bounds using ordinary ORM filters.
+            const neighbors = await tx.itemPlacement.findMany({
+                where: { worldId: args.worldId, surfaceId: args.surfaceId },
+                select: { x: true, y: true, z: true, yaw: true },
+            });
+            const halfWidth = (yaw: number) =>
+                0.3 * (Math.abs(Math.cos(yaw)) + Math.abs(Math.sin(yaw)));
             if (
-                await tx.itemPlacement.findFirst({
-                    where: {
-                        worldId: args.worldId,
-                        surfaceId: args.surfaceId,
-                        x: { gt: p.x - 0.61, lt: p.x + 0.61 },
-                        y: { gt: p.y - 0.81, lt: p.y + 0.81 },
-                    },
-                    select: { id: true },
+                neighbors.some((other) => {
+                    const separation = item.scanJobId
+                        ? halfWidth(p.yaw) + halfWidth(other.yaw) + 0.01
+                        : 0.61;
+                    return (
+                        Math.abs(other.x - p.x) < separation &&
+                        (item.scanJobId
+                            ? Math.abs(other.z - p.z) < separation
+                            : Math.abs(other.y - p.y) < 0.81)
+                    );
                 })
             )
                 fail(409, "OCCUPIED", "That space is occupied.");

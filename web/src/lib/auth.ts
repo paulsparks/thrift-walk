@@ -52,6 +52,7 @@ export const auth = betterAuth({
                 defaultValue: "",
                 validator: { input: bioSchema },
             },
+            approved: { type: "boolean", defaultValue: false, input: false },
             role: {
                 type: ["User", "Admin"],
                 defaultValue: "User",

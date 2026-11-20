@@ -31,6 +31,7 @@ import psycopg
 import redis
 
 from pipeline import run_pipeline
+from preview import generate_preview
 
 # Must match SCAN_QUEUE in web/src/lib/scan-config.ts
 QUEUE = "scan:jobs"
@@ -228,6 +229,7 @@ def process(conn: psycopg.Connection, storage_root: Path, job_id: str) -> None:
             storage_root / job_id / "model.glb",
             report=lambda percent: set_progress(conn, job_id, percent),
         )
+        generate_preview(storage_root / job_id / "model.glb")
         complete(conn, job_id, f"{job_id}/model.glb")
         discard_photos(conn, storage_root, job_id, image_paths)
         log.info("Finished %s in %.0fs", job_id, time.monotonic() - started)
@@ -253,7 +255,13 @@ def main() -> None:
     )
     storage_root = Path(require_env("SCAN_STORAGE_DIR")).resolve()
     database_url = postgres_url(require_env("DATABASE_URL"))
-    queue = redis.Redis.from_url(require_env("REDIS_URL"), decode_responses=True)
+    queue = redis.Redis.from_url(
+        require_env("REDIS_URL"),
+        decode_responses=True,
+        # BRPOP needs time to return an empty result before the socket expires.
+        socket_timeout=POP_TIMEOUT_SECONDS + 5,
+        socket_connect_timeout=5,
+    )
 
     log.info("Worker started; storage at %s", storage_root)
     try:
@@ -275,7 +283,11 @@ def main() -> None:
                             log.warning("Ignoring malformed queue item: %r", item[1])
                             continue
                         process(conn, storage_root, job_id)
-            except (psycopg.OperationalError, redis.ConnectionError) as exc:
+            except (
+                psycopg.OperationalError,
+                redis.ConnectionError,
+                redis.TimeoutError,
+            ) as exc:
                 log.warning("Lost a connection (%s); retrying in 3s", exc)
                 time.sleep(3)
     except KeyboardInterrupt:

@@ -78,11 +78,8 @@ func request(
 		var headers := PackedStringArray(["Content-Type: application/json", "Origin: " + base_url])
 		if server:
 			headers.append("Authorization: Bearer " + OS.get_environment("GAME_SERVER_SECRET"))
-		elif not cookies.is_empty():
-			var pairs := PackedStringArray()
-			for key: String in cookies:
-				pairs.append(key + "=" + str(cookies[key]))
-			headers.append("Cookie: " + "; ".join(pairs))
+		else:
+			headers.append_array(cookie_headers())
 		var verb := HTTPClient.METHOD_GET
 		if method == "POST":
 			verb = HTTPClient.METHOD_POST
@@ -126,6 +123,15 @@ func request(
 		user.clear()
 		session_ended.emit()
 	return result
+
+
+func cookie_headers() -> PackedStringArray:
+	if OS.has_feature("web") or cookies.is_empty():
+		return PackedStringArray()
+	var pairs := PackedStringArray()
+	for key: String in cookies:
+		pairs.append(key + "=" + str(cookies[key]))
+	return PackedStringArray(["Cookie: " + "; ".join(pairs)])
 
 
 func validate() -> Dictionary:

@@ -2,23 +2,13 @@
 
 ## Ubuntu deployment with Docker Compose
 
-See [the deployment guide](deploy/README.md) for Docker installation, DNS, backups,
-and updates. On an x86-64 server with Docker Compose installed:
-
-```sh
-git lfs install
-git lfs pull
-./deploy/configure.sh market.example.com you@example.com
-sudo chown 1000:1000 storage/images
-sudo chmod 750 storage/images
-docker compose --env-file .env.production up -d --build
-```
-
-Point the domain at your server and open TCP ports 80/443 (UDP 443 is optional).
-The stack builds matching browser/dedicated game exports, applies migrations,
-and starts PostgreSQL, Next.js, Godot, and Caddy with automatic HTTPS.
-Database data lives in `./database`, images in `./storage/images`, and certificates
-persist in Caddy named volumes.
+Follow the [Ubuntu deployment guide](deploy/README.md) for first install, upgrades,
+first-admin setup, backups, and restore. It covers both an in-checkout install
+and a server with the Compose file one directory above the checkout. For 3D
+scans, enable the [Runpod overlay](deploy/runpod/README.md) before starting
+the app. The Ubuntu server runs the CPU dispatcher; reconstruction runs on the
+existing GPU endpoint. Keep PostgreSQL, image storage, scan storage, and the
+private deployment environment together in backups.
 
 ## Getting Started with Development
 
@@ -62,11 +52,17 @@ Open [http://localhost:9000](http://localhost:9000). The same proxy forwards
 `/game-socket` to the dedicated Godot server on port 8080. See the storefront
 guide below for server setup and browser export instructions.
 
+After signing in, users enter a six-digit approval code to unlock their account.
+Approved admins can generate, copy, and delete unused codes in **Profile → Approval Codes**. Codes stay valid until
+redeemed, and each code approves one account. The approval migration enables
+existing admins. On a fresh database, sign up first, then have the database
+operator set that specific account’s role to Admin and its approved flag to true.
+
 #### Worker (3D scanning)
 
 Uploaded item photos are turned into `.glb` models by a Python worker in
 `worker/` (MASt3R for reconstruction, Open3D for cleanup and meshing). The web
-app queues jobs in Redis, and the worker picks them up. A CUDA GPU is strongly
+app queues local development jobs in Redis. The Runpod deployment uses PostgreSQL instead. A CUDA GPU is strongly
 recommended; MASt3R on CPU takes minutes per scan. On WSL 2 the GPU comes from
 the Windows NVIDIA driver, so no Linux driver install is needed.
 
@@ -75,6 +71,12 @@ One-time setup, from the repo root inside `devenv shell`:
 ```bash
 # MASt3R (and its DUSt3R submodule), pinned as a git submodule.
 git submodule update --init --recursive
+# If your checkout has no worker/mast3r gitlink, install the worker image's pinned revision:
+if [ ! -f worker/mast3r/requirements.txt ]; then
+  git clone https://github.com/naver/mast3r.git worker/mast3r
+  git -C worker/mast3r checkout f5209afc300cec36239a7ac992263f36847bbba0
+  git -C worker/mast3r submodule update --init --recursive
+fi
 
 # PyTorch first. Pick the build that matches your CUDA version from
 # https://pytorch.org/get-started/locally/ (cu128 shown here).
@@ -109,6 +111,35 @@ by hand:
 ruff format worker
 ruff check --fix worker
 ```
+
+#### Store items from scans
+
+In **My Stores → Add item** (or **Edit**), choose **3D scan model** and select
+one of your completed scans. Image items still use a picture frame; scan items
+use the model itself, including during placement, with the same item inspection
+and listing controls. Models rest on the lobby table; image frames go on the
+display wall. While placing a model, scroll the mouse wheel to rotate it in
+15° steps, then click to place. Models retain their proportions. Changing media type returns
+an already-placed item to inventory so it can be placed on the correct surface. A scan attached to an item cannot be deleted until
+the item is changed or removed.
+
+Apply the database migration from `web/` with `pnpm-s exec zen migrate deploy`
+and rebuild the browser/dedicated game exports when updating an existing setup.
+The web server and worker must share `SCAN_STORAGE_DIR`: listed models are
+served from there; unattached scans remain private.
+
+The worker UV-unwraps the simplified mesh with Blender and bakes the dense surface
+colors into a 1024×1024 base-color texture embedded in the GLB.
+The worker uses Blender (included in `devenv`, or set `BLENDER_BIN`) to render
+an 800×800 transparent PNG after reconstruction, before marking the scan complete.
+Each scan stores `<id>/model.glb` and `<id>/preview.png`. The PNG is used in the
+store, scan picker, profile, and game inventory/details. To backfill an existing
+model without rerunning reconstruction, run from `worker/`:
+`python -c 'from pathlib import Path; from preview import generate_preview; generate_preview(Path("/path/to/scan/model.glb"))'`.
+
+Regression checks: the `test:market` script requires `DATABASE_URL` to point
+to a disposable PostgreSQL service on port 55432. The model/interaction smoke test runs without a backend:
+`godot --headless --path game res://tests/scan_model_smoke.tscn`.
 
 #### Game
 

@@ -7,3 +7,4 @@ Pillow
 pillow-heif
 redis
 psycopg[binary]
+scipy

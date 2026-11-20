@@ -501,7 +501,10 @@ func _render_inventory(stale: bool = false) -> void:
 		list.add_child(tag)
 		var row := HBoxContainer.new()
 		tag.add_child(row)
-		_thumbnail(str(item.get("imageAssetId", "")), row)
+		if item.get("scanJobId") != null:
+			_thumbnail(str(item.scanJobId), row, false, true)
+		else:
+			_thumbnail(str(item.get("imageAssetId", "")), row)
 		var info := VBoxContainer.new()
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		info.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -513,9 +516,9 @@ func _render_inventory(stale: bool = false) -> void:
 		)
 		var action: Button
 		if is_placed:
-			action = button("Remove frame", func() -> void: _remove(item), row, stale or _busy)
+			action = button("Remove item", func() -> void: _remove(item), row, stale or _busy)
 		elif (
-			item.get("imageAssetId") == null
+			(item.get("imageAssetId") == null and item.get("scanJobId") == null)
 			or item.get("externalUrl") == null
 			or item.get("_image_unavailable", false)
 		):
@@ -541,7 +544,7 @@ func _render_inventory(stale: bool = false) -> void:
 	_inventory_scroll.set_deferred("scroll_vertical", _scroll)
 
 
-func _thumbnail(id: String, parent: Node, large: bool = false) -> void:
+func _thumbnail(id: String, parent: Node, large: bool = false, scan: bool = false) -> void:
 	var rect := TextureRect.new()
 	rect.custom_minimum_size = Vector2(240, 220) if large else Vector2(84, 84)
 	rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -554,7 +557,7 @@ func _thumbnail(id: String, parent: Node, large: bool = false) -> void:
 	spinner.offset_top = -20
 	spinner.offset_right = 20
 	spinner.offset_bottom = 20
-	var loaded := await Market.texture(id, not large)
+	var loaded := await Market.texture(id, not large, scan)
 	if is_instance_valid(rect):
 		spinner.queue_free()
 		rect.texture = loaded
@@ -617,14 +620,21 @@ func _place(item: Dictionary) -> void:
 		_finish_loading(loading)
 		return
 	if (checked.status as int) == 200:
-		var texture := await Market.texture(str(item.get("imageAssetId", "")), true)
+		var available := false
+		if item.get("scanJobId") != null:
+			var loaded := await Market.model(str(item.scanJobId))
+			available = loaded != null
+			if loaded != null:
+				loaded.free()
+		else:
+			available = await Market.texture(str(item.get("imageAssetId", "")), true) != null
 		_busy = false
 		_finish_loading(loading)
 		if epoch != Api.generation or InputMode.mode != InputMode.Mode.STORE:
 			return
-		if texture == null:
+		if not available:
 			item["_image_unavailable"] = true
-			_error = "Image unavailable. Finish setup in browser, or Refresh to retry."
+			_error = "Item media unavailable. Finish setup in browser, or Refresh to retry."
 			_render_inventory()
 			return
 		Market.begin(item)
@@ -706,7 +716,10 @@ func _render_details() -> void:
 		return
 	var content := HBoxContainer.new()
 	_box.add_child(content)
-	_thumbnail(str(_details.get("imageAssetId", "")), content, true)
+	if _details.get("scanJobId") != null:
+		_thumbnail(str(_details.scanJobId), content, true, true)
+	else:
+		_thumbnail(str(_details.get("imageAssetId", "")), content, true)
 	var copy := VBoxContainer.new()
 	copy.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content.add_child(copy)

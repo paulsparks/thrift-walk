@@ -108,6 +108,8 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
     const session = await auth.api.getSession({ headers: req.headers });
     if (!session) return error("Unauthorized", 401);
+    if (process.env.SCAN_BACKEND === "disabled")
+        return error("Scan uploads are disabled on this server.", 503);
     const ownerId = session.user.id;
 
     const rejected = await admissionError(ownerId);
@@ -191,7 +193,10 @@ export async function POST(req: NextRequest) {
             where: { id: job.id },
             data: { imagePaths },
         });
-        await redis.lpush(SCAN_QUEUE, JSON.stringify({ jobId: job.id }));
+        // Runpod's CPU dispatcher reads durable Pending rows directly.
+        if (process.env.SCAN_BACKEND !== "runpod") {
+            await redis.lpush(SCAN_QUEUE, JSON.stringify({ jobId: job.id }));
+        }
     } catch (err) {
         console.error("Scan upload failed", err);
         // Don't leave a job that will never be picked up.

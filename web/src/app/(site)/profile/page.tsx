@@ -4,14 +4,17 @@ import {
     IconPlus,
     IconUserFilled,
 } from "@tabler/icons-react";
+import { headers } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Fragment, type ReactNode } from "react";
 
+import { ApprovalCodes } from "@/components/approval-forms";
 import { ItemPrice } from "@/components/item-price";
 import { ShareButton } from "@/components/share-button";
 import { WishlistRemoveButton } from "@/components/wishlist-remove-button";
+import { listCodes } from "@/lib/approval";
 import { getProfileData, type ProfileData } from "@/lib/profile";
 import { getSessionDb } from "@/lib/session-db";
 
@@ -29,14 +32,20 @@ const profilePlaceholders = {
 function ItemPhoto({
     name,
     imageAssetId,
+    scanJobId,
 }: {
     name: string;
     imageAssetId: string | null;
+    scanJobId: string | null;
 }) {
-    return imageAssetId ? (
+    return imageAssetId || scanJobId ? (
         <Image
             unoptimized
-            src={`/api/media/${encodeURIComponent(imageAssetId)}?thumb=1`}
+            src={
+                scanJobId
+                    ? `/api/media/models/${encodeURIComponent(scanJobId)}?preview=1`
+                    : `/api/media/${encodeURIComponent(imageAssetId || "")}?thumb=1`
+            }
             alt={name}
             fill
             sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 25vw"
@@ -88,6 +97,7 @@ function WishlistPanel({ entries }: { entries: WishlistEntry[] }) {
                         <ItemPhoto
                             name={item.name}
                             imageAssetId={item.imageAssetId}
+                            scanJobId={item.scanJobId}
                         />
                     </div>
                     <div className="card-body gap-1 p-4">
@@ -134,6 +144,7 @@ function buildTabs({ wishlist, inventory, stores }: ProfileData): Tab[] {
                                 <ItemPhoto
                                     name={item.name}
                                     imageAssetId={item.imageAssetId}
+                                    scanJobId={item.scanJobId}
                                 />
                             </div>
                             <div className="card-body gap-1 p-4">
@@ -256,6 +267,14 @@ export default async function Profile({
         { value: "12k", label: "Credits" },
     ];
     const tabs = buildTabs(data);
+    if (session.user.role === "Admin") {
+        const codes = await listCodes(await headers());
+        tabs.push({
+            id: "approval-codes",
+            label: "Approval Codes",
+            panel: <ApprovalCodes codes={codes} />,
+        });
+    }
     const { tab } = await searchParams;
     const activeTab = tabs.some((t) => t.id === tab) ? tab : "inventory";
 

@@ -44,6 +44,22 @@ albedo_color = Color(0.72, 0.62, 0.43, 1)
 [sub_resource type="BoxMesh" id="DisplayMesh"]
 size = Vector3(6, 3, 0.1)
 
+[sub_resource type="BoxMesh" id="TableTopMesh"]
+size = Vector3(3.6, 0.12, 1.4)
+
+[sub_resource type="BoxShape3D" id="TableTopShape"]
+size = Vector3(3.6, 0.12, 1.4)
+
+[sub_resource type="StandardMaterial3D" id="TableWood"]
+albedo_color = Color(0.35, 0.19, 0.09, 1)
+roughness = 0.75
+
+[sub_resource type="BoxMesh" id="TableLegMesh"]
+size = Vector3(0.12, 0.78, 0.12)
+
+[sub_resource type="BoxShape3D" id="TableLegShape"]
+size = Vector3(0.12, 0.78, 0.12)
+
 [node name="DemoStore" type="Node3D" unique_id=1366019686]
 
 [node name="Map" type="Node" parent="." unique_id=1804826337]
@@ -263,8 +279,52 @@ shape = SubResource("DisplayShape")
 material_override = SubResource("DisplayMaterial")
 mesh = SubResource("DisplayMesh")
 
-[node name="Label" type="Label3D" parent="SharedDisplayWall" unique_id=798094817]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0.06)
-pixel_size = 0.004
-text = "COMMUNITY FINDS • SHARED DISPLAY"
-font_size = 48
+
+[node name="LobbyTable" type="StaticBody3D" parent="." groups=["display_surface"]]
+position = Vector3(0, 0, 2.4)
+metadata/surface_id = "lobby-table"
+
+[node name="Top" type="MeshInstance3D" parent="LobbyTable"]
+position = Vector3(0, 0.84, 0)
+mesh = SubResource("TableTopMesh")
+material_override = SubResource("TableWood")
+
+[node name="TopCollision" type="CollisionShape3D" parent="LobbyTable"]
+position = Vector3(0, 0.84, 0)
+shape = SubResource("TableTopShape")
+
+[node name="FrontLeft" type="MeshInstance3D" parent="LobbyTable"]
+position = Vector3(-1.6, 0.39, 0.5)
+mesh = SubResource("TableLegMesh")
+material_override = SubResource("TableWood")
+
+[node name="FrontLeftCollision" type="CollisionShape3D" parent="LobbyTable"]
+position = Vector3(-1.6, 0.39, 0.5)
+shape = SubResource("TableLegShape")
+
+[node name="FrontRight" type="MeshInstance3D" parent="LobbyTable"]
+position = Vector3(1.6, 0.39, 0.5)
+mesh = SubResource("TableLegMesh")
+material_override = SubResource("TableWood")
+
+[node name="FrontRightCollision" type="CollisionShape3D" parent="LobbyTable"]
+position = Vector3(1.6, 0.39, 0.5)
+shape = SubResource("TableLegShape")
+
+[node name="BackLeft" type="MeshInstance3D" parent="LobbyTable"]
+position = Vector3(-1.6, 0.39, -0.5)
+mesh = SubResource("TableLegMesh")
+material_override = SubResource("TableWood")
+
+[node name="BackLeftCollision" type="CollisionShape3D" parent="LobbyTable"]
+position = Vector3(-1.6, 0.39, -0.5)
+shape = SubResource("TableLegShape")
+
+[node name="BackRight" type="MeshInstance3D" parent="LobbyTable"]
+position = Vector3(1.6, 0.39, -0.5)
+mesh = SubResource("TableLegMesh")
+material_override = SubResource("TableWood")
+
+[node name="BackRightCollision" type="CollisionShape3D" parent="LobbyTable"]
+position = Vector3(1.6, 0.39, -0.5)
+shape = SubResource("TableLegShape")

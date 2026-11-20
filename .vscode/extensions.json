@@ -8,6 +8,7 @@
         "biomejs.biome",
         "datakurre.devenv",
         "zenstack.zenstack-v3",
+        "ms-python.python",
         "charliermarsh.ruff"
     ]
 }

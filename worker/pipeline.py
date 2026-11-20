@@ -4,7 +4,7 @@ Stages:
   1. prepare_images          normalise uploads (HEIC, EXIF rotation) to JPEG
   2. reconstruct_point_cloud MASt3R: multi-view photos -> coloured 3D points
   3. build_mesh              Open3D: clean, surface-reconstruct, decimate
-  4. export_glb              trimesh: write a game/browser-ready .glb
+  4. export_textured_glb     bake dense colors onto the simplified game mesh
 
 Run it by hand to test without the queue:
 
@@ -19,6 +19,7 @@ import logging
 import os
 import shutil
 import sys
+import tempfile
 from collections.abc import Callable, Sequence
 from pathlib import Path
 
@@ -123,7 +124,9 @@ def load_model(device: str):
         log.info(
             "Loading %s on %s (first run downloads the weights)...", MODEL_NAME, device
         )
-        _model = AsymmetricMASt3R.from_pretrained(MODEL_NAME).to(device)
+        _model = AsymmetricMASt3R.from_pretrained(
+            os.environ.get("SCAN_MODEL_PATH", MODEL_NAME)
+        ).to(device)
         _model.eval()
     return _model
 
@@ -274,7 +277,11 @@ def _largest_flat_face_up(vertices: np.ndarray) -> np.ndarray | None:
     return normal if vertices.mean(axis=0) @ normal + d >= 0 else -normal
 
 
-def _stand_on_bottom(vertices: np.ndarray, support: np.ndarray | None) -> np.ndarray:
+def _stand_on_bottom(
+    vertices: np.ndarray,
+    support: np.ndarray | None,
+    companion: np.ndarray | None = None,
+) -> np.ndarray:
     """Turn the item so its bottom faces down, rest it on y=0, centre it in x/z.
 
     glTF is Y-up. The bottom is the table the item stood on if we found one,
@@ -288,11 +295,16 @@ def _stand_on_bottom(vertices: np.ndarray, support: np.ndarray | None) -> np.nda
         up = _largest_flat_face_up(vertices)
 
     if up is not None:
-        vertices = vertices @ _rotation_between(up, np.array([0.0, 1.0, 0.0])).T
+        rotation = _rotation_between(up, np.array([0.0, 1.0, 0.0])).T
+        vertices = vertices @ rotation
+        if companion is not None:
+            companion[:] = companion @ rotation
         low, high = vertices.min(axis=0), vertices.max(axis=0)
         shift = np.array([(low[0] + high[0]) / 2, low[1], (low[2] + high[2]) / 2])
     else:
         shift = vertices.mean(axis=0)  # nothing flat to rest on: just centre it
+    if companion is not None:
+        companion -= shift
     return vertices - shift
 
 
@@ -405,7 +417,11 @@ def _smooth_vertices(
 
 
 def build_mesh(
-    points: np.ndarray, colours: np.ndarray, report: ProgressFn = _ignore_progress
+    points: np.ndarray,
+    colours: np.ndarray,
+    report: ProgressFn = _ignore_progress,
+    *,
+    dense: dict | None = None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Returns (vertices Nx3, triangles Mx3, vertex colours Nx3 in 0..1)."""
     import open3d as o3d
@@ -492,6 +508,14 @@ def build_mesh(
     log.info("Mesh is %s", "watertight" if mesh.is_watertight() else "not fully closed")
     report(80)
 
+    # Preserve surface colors before smoothing/decimation averages them away.
+    if dense is not None:
+        dense.update(
+            vertices=np.asarray(mesh.vertices).copy(),
+            triangles=np.asarray(mesh.triangles).copy(),
+            colours=np.asarray(mesh.vertex_colors).copy(),
+        )
+
     if SMOOTH_ITERATIONS > 0:
         log.info("Smoothing surfaces (%d passes)...", SMOOTH_ITERATIONS)
         mesh = mesh.filter_smooth_taubin(number_of_iterations=SMOOTH_ITERATIONS)
@@ -518,7 +542,9 @@ def build_mesh(
     )
     vertices = _smooth_vertices(vertices, triangles, SMOOTH_FINAL_ITERATIONS)
     # Bottom down, resting on y=0, centred in x/z.
-    vertices = _stand_on_bottom(np.asarray(vertices), support)
+    vertices = _stand_on_bottom(
+        np.asarray(vertices), support, dense["vertices"] if dense is not None else None
+    )
     report(85)
     return vertices, triangles, vertex_colours
 
@@ -528,26 +554,12 @@ def build_mesh(
 # --------------------------------------------------------------------------
 
 
-def export_glb(
-    vertices: np.ndarray, triangles: np.ndarray, colours: np.ndarray, out_path: Path
-) -> None:
-    """Write a .glb with vertex colours (trimesh keeps colours reliably)."""
-    import trimesh
+def build_textured_model(points, colours, output, work, report=_ignore_progress):
+    from texture import export_textured_glb
 
-    mesh = trimesh.Trimesh(
-        vertices=vertices,
-        faces=triangles,
-        vertex_colors=(np.clip(colours, 0.0, 1.0) * 255).astype(np.uint8),
-        process=False,
-    )
-    # Computing normals makes trimesh write them, so a low-poly model shades
-    # smoothly in the game instead of looking faceted.
-    _ = mesh.vertex_normals
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    # Write to a temp name first so nothing ever sees a half-written model.
-    tmp_path = out_path.with_name(out_path.name + ".tmp")
-    mesh.export(tmp_path, file_type="glb")
-    os.replace(tmp_path, out_path)
+    dense = {}
+    vertices, triangles, _ = build_mesh(points, colours, report, dense=dense)
+    export_textured_glb(vertices, triangles, dense, output, work)
 
 
 # --------------------------------------------------------------------------
@@ -561,6 +573,8 @@ def run_pipeline(
     report: ProgressFn = _ignore_progress,
 ) -> None:
     """Photos in, .glb out. Raises on failure with a message fit for users."""
+    if not 3 <= len(image_paths) <= 10:
+        raise ValueError("A scan requires 3 to 10 photos")
     work_dir = output_glb.parent / "work"
     try:
         report(3)
@@ -570,8 +584,7 @@ def run_pipeline(
             files, work_dir / "mast3r-cache", get_device()
         )
         report(60)
-        vertices, triangles, vertex_colours = build_mesh(points, colours, report)
-        export_glb(vertices, triangles, vertex_colours, output_glb)
+        build_textured_model(points, colours, output_glb, work_dir, report)
         report(95)
     finally:
         shutil.rmtree(work_dir, ignore_errors=True)
@@ -603,7 +616,8 @@ def main() -> None:
 
     if args.demo_sphere:
         points, colours = _synthetic_sphere()
-        export_glb(*build_mesh(points, colours), args.output)
+        with tempfile.TemporaryDirectory() as tmp:
+            build_textured_model(points, colours, args.output, Path(tmp))
     elif args.images:
         run_pipeline(args.images, args.output, report=lambda p: log.info("%d%%", p))
     else:

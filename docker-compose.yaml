@@ -1,7 +1,7 @@
 name: thrift-walk
 
 x-build: &build
-  context: ./thrift-walk
+  context: ${THRIFT_SOURCE_DIR:-./thrift-walk}
   dockerfile: Dockerfile
   args:
     GODOT_VERSION: "4.7.2"
@@ -63,7 +63,9 @@ services:
     platform: linux/amd64
     init: true
     restart: unless-stopped
-    environment: *app-env
+    environment:
+      <<: *app-env
+      SCAN_BACKEND: disabled
     volumes:
       - type: bind
         source: ${IMAGES_DIR:-./storage/images}
@@ -78,7 +80,7 @@ services:
       migrate:
         condition: service_completed_successfully
     healthcheck:
-      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/api/health', {signal: AbortSignal.timeout(4000)}).then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/api/health', {headers: {authorization: 'Bearer ' + process.env.GAME_SERVER_SECRET}, signal: AbortSignal.timeout(4000)}).then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
       interval: 15s
       timeout: 5s
       retries: 10

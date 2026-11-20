@@ -31,33 +31,49 @@ export function listingUrl(value: unknown): string {
         fail(422, "INVALID_URL", "Use HTTPS without embedded credentials.");
     return url.href;
 }
-// Shared demo board: center (0, 1.8, -2), size 6 × 3, front normal +Z.
-// Frame size .6 × .8; grid .1. The game also verifies reach and occlusion.
+// These bounds mirror the lobby surfaces and game-side reach/occlusion checks.
 export function placement(value: Record<string, unknown>) {
-    if (value.worldId !== "demo_store" || value.surfaceId !== "demo-board")
-        fail(422, "INVALID_SURFACE", "Choose a display wall.");
+    const table = value.surfaceId === "lobby-table";
+    if (
+        value.worldId !== "demo_store" ||
+        (!table && value.surfaceId !== "demo-board")
+    )
+        fail(422, "INVALID_SURFACE", "Choose a display wall or table.");
     const { x, y, z, yaw } = value;
     if (
         ![x, y, z, yaw].every(
             (v) => typeof v === "number" && Number.isFinite(v),
         )
     )
-        fail(422, "INVALID_TRANSFORM", "Invalid frame transform.");
+        fail(422, "INVALID_TRANSFORM", "Invalid item transform.");
     const p = {
         x: x as number,
         y: y as number,
         z: z as number,
         yaw: yaw as number,
     };
+    const grid = table ? [p.x, p.z] : [p.x, p.y];
+    const half = 0.3 * (Math.abs(Math.cos(p.yaw)) + Math.abs(Math.sin(p.yaw)));
+    const outside = table
+        ? Math.abs(p.x) > 1.8 - half ||
+          Math.abs(p.z - 2.4) > 0.7 - half + 0.00001 ||
+          Math.abs(p.y - 0.9) > 0.001
+        : Math.abs(p.x) > 2.7 ||
+          p.y < 0.7 ||
+          p.y > 2.9 ||
+          Math.abs(p.z + 1.94) > 0.001;
     if (
-        Math.abs(p.x) > 2.7 ||
-        p.y < 0.7 ||
-        p.y > 2.9 ||
-        Math.abs(p.z + 1.94) > 0.001 ||
-        p.yaw !== 0 ||
-        [p.x, p.y].some((v) => Math.abs(v * 10 - Math.round(v * 10)) > 0.001)
+        outside ||
+        (table ? Math.abs(p.yaw) > Math.PI + 0.00001 : p.yaw !== 0) ||
+        grid.some((v) => Math.abs(v * 10 - Math.round(v * 10)) > 0.001)
     )
-        fail(422, "INVALID_BOUNDS", "Keep the frame inside the display wall.");
+        fail(
+            422,
+            "INVALID_BOUNDS",
+            table
+                ? "Keep the model on the table."
+                : "Keep the frame inside the display wall.",
+        );
     return p;
 }
 export function sameOrigin(req: Request) {

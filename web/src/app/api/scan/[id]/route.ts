@@ -20,28 +20,39 @@ export async function DELETE(
 
     const { id } = await params;
 
-    // One conditional delete, so a scan the worker has just picked up can
-    // never be removed from under it.
-    const { count } = await db.scanJob.deleteMany({
-        where: {
-            id,
-            ownerId: session.user.id,
-            status: { in: ["Completed", "Failed"] },
-        },
+    const result = await db.$transaction(async (tx) => {
+        // Serialize deletion with item attachment, which holds a SHARE lock.
+        const job = await tx.$qb
+            .selectFrom("ScanJob")
+            .select(["id", "status"])
+            .where("id", "=", id)
+            .where("ownerId", "=", session.user.id)
+            .forUpdate()
+            .executeTakeFirst();
+        if (!job) return { status: 404, error: "Not found" };
+        if (job.status !== "Completed" && job.status !== "Failed")
+            return {
+                status: 409,
+                error: "Wait for the scan to finish before deleting it.",
+            };
+        if (
+            await tx.item.findFirst({
+                where: { scanJobId: id },
+                select: { id: true },
+            })
+        )
+            return {
+                status: 409,
+                error: "This scan is used by a store item. Change or delete that item first.",
+            };
+        await tx.scanJob.delete({ where: { id } });
+        return null;
     });
-
-    if (count === 0) {
-        const exists = await db.scanJob.findFirst({
-            where: { id, ownerId: session.user.id },
-            select: { id: true },
-        });
-        return exists
-            ? NextResponse.json(
-                  { error: "Wait for the scan to finish before deleting it." },
-                  { status: 409 },
-              )
-            : NextResponse.json({ error: "Not found" }, { status: 404 });
-    }
+    if (result)
+        return NextResponse.json(
+            { error: result.error },
+            { status: result.status },
+        );
 
     // The row is gone, so a leftover folder is only wasted space.
     await rm(resolveScanPath(id), { recursive: true, force: true }).catch(

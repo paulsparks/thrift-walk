@@ -1,270 +1,144 @@
 # Deploy Thrift Walk on Ubuntu
 
-This deployment builds and runs the complete application from this checkout. You
-need Docker Engine with the **Compose plugin** (`docker compose`), Git LFS, a
-public domain, and an **x86-64/amd64 Ubuntu server**. No Nix, local Node.js, Godot,
-or SecretSpec installation is needed. Allow 15 GB of free disk space and
-at least 4 GB of RAM for the initial build; a small VPS may need swap. Builds
-need outbound access to package registries, Godot releases, and Google Fonts.
-The first build downloads roughly 1.2 GB of Godot export templates in addition
-to container images and JavaScript dependencies; later builds reuse Docker's cache.
+## Choose the deployment directory
 
-## 1. Prepare the server
+Use an x86-64 Ubuntu server with Docker Engine, Buildx, the Compose plugin, Git LFS, and OpenSSL. Follow [Docker’s Ubuntu installation instructions](https://docs.docker.com/engine/install/ubuntu/). No GPU, Nix, Godot, or Node installation is required on the app host. The initial build downloads Godot export templates, JavaScript packages, and fonts. Budget at least 15 GB free for builds, plus space for PostgreSQL, uploads, and backups. Run builds before stopping a working release.
 
-Install Docker Engine and its Compose/Buildx plugins using
-[Docker's Ubuntu instructions](https://docs.docker.com/engine/install/ubuntu/).
-Then install the small host-side prerequisites:
+Keep using the directory, Compose project name, bind paths, and Caddy volumes that already own your data. Two layouts are supported:
 
-```sh
-sudo apt update
-sudo apt install git git-lfs openssl
-sudo systemctl enable --now docker
-```
+| Layout | Working directory for Compose | Source checkout | Setting in private `.env.production` |
+| --- | --- | --- | --- |
+| Default server layout | Parent containing `docker-compose.yaml`, `.env.production`, and `thrift-walk/` | `./thrift-walk` | Compose defaults to this checkout |
+| In-checkout opt-in | Repository root | `.` | Run `deploy/configure.sh --in-checkout` to use this layout |
 
-Use `sudo docker` in the commands below if your account cannot access Docker.
-Do not install the obsolete Python `docker-compose` package.
+All paths below are relative to the **Compose working directory**. For upgrades, skip initial configuration and follow **Update an existing server** below. The Ubuntu build needs the release's committed source and LFS objects. Local staged or untracked changes are absent from a server-side Git checkout.
 
-Clone this repository and check out the revision you want to deploy. All of the
-new deployment/application files must be committed or copied to that checkout.
-From the repository root:
+## Fresh install
+
+Point the domain's A record to the server. Publish an AAAA record only if IPv6 reaches the server. Allow TCP 80/443 to Caddy through both firewalls; UDP 443 enables HTTP/3. Keep the database, web, and game ports private. If another proxy already owns ports 80/443, retain your existing ingress configuration.
+
+Install the host tools with `sudo apt install git git-lfs openssl` and confirm `docker compose version` and `docker buildx version` succeed. For a checkout at `/opt/thriftwalk/thrift-walk`, run:
 
 ```sh
-git lfs install
-git lfs pull
+cd /opt/thriftwalk
+git -C thrift-walk lfs install --local
+git -C thrift-walk lfs pull
+./thrift-walk/deploy/configure.sh market.example.com you@example.com
+sudo chown 1000:1000 storage/images storage/scans
+sudo chmod 750 storage/images storage/scans
 ```
 
-The image build rejects unresolved LFS pointers instead of exporting a game
-with missing models/textures. Do not copy your local `.godot`, `node_modules`,
-`.next`, development `.env`, or old game exports; Docker rebuilds them.
+The script resolves the deployment directory from the checkout location, regardless of your shell’s working directory. It puts `docker-compose.yaml`, `.env.production`, `config/`, `database/`, and `storage/` together in `/opt/thriftwalk`. It copies the Compose and Caddy templates only when missing. With an existing top-level `.env.production`, run `./thrift-walk/deploy/configure.sh` without arguments to prepare missing directories using the existing configuration. Keep any existing `storage/models/`; the scan overlay defaults to the separate `storage/scans/` directory.
 
-The existing Tiny Store FBX references five absent `PavingStones127`/`Concrete025`
-texture files. Godot reports these during a clean import and skips those textures;
-they are not a Docker download failure.
+On first install the script creates a mode-600 `.env.production`, three independent credentials, `config/Caddyfile`, and host storage directories. It refuses to overwrite the env file. Protect and back up that file. Caddy uses the copied configuration in `config/`. PostgreSQL 18 stores its cluster under the `./database` bind mount at `/var/lib/postgresql`. The setup script creates the mount parent with mode 0711 so the container’s postgres user can traverse it. The image manages the private cluster directory beneath it. If a previous setup created the mount parent with mode 0700 and startup logs show a permission error at /var/lib/postgresql, run `sudo chmod a+x ./database` from the Compose directory (substitute your actual DATABASE_DIR if customized), then `docker compose --env-file .env.production up -d --wait`. Apply the change only to the mount parent. The web and dispatcher containers use UID:GID 1000:1000.
 
-Set your domain's DNS **A** record to the server's public IPv4 address. Only add
-an **AAAA** record if IPv6 actually reaches this server. Allow inbound **TCP 80
-and 443** in the hosting-provider firewall and the server firewall. UDP 443 is
-optional for HTTP/3. Nothing else needs a public port. Caddy must own those ports;
-stop/reconfigure an existing nginx/Apache/Caddy instance if necessary.
+### Enable cloud scanning
 
-## 2. Configure and start
+The base stack provides the website and multiplayer game. **Enable the Runpod overlay for scan uploads and access to stored scan files.** The overlay starts one CPU dispatcher and mounts the same scan directory into web and dispatcher. It needs no Redis or GPU on Ubuntu. The base stack alone returns HTTP 503 for a new scan upload.
 
-Replace the example domain and email:
+Add the following to the private `.env.production` using an editor. Supply real values for the key, transfer secret, and public origin:
+
+```dotenv
+# /opt/thriftwalk/.env.production
+COMPOSE_FILE=docker-compose.yaml:thrift-walk/deploy/runpod/compose.yaml
+RUNPOD_ENDPOINT_ID=rzkm43jcdkixzj
+RUNPOD_API_KEY=<key with access to invoke and poll this endpoint>
+SCAN_APP_ORIGIN=https://market.example.com
+SCAN_TRANSFER_SECRET=<output of openssl rand -hex 32>
+```
+
+For the in-checkout layout, use `COMPOSE_FILE=docker-compose.yaml:deploy/runpod/compose.yaml`. Keeping the file list in the env file applies the same services to startup, updates, backups, and maintenance. Match `SCAN_APP_ORIGIN` to the **production HTTPS origin** on both the dispatcher and the existing Runpod endpoint. A previous local tunnel URL must be updated on the endpoint at cutover. That endpoint serves one origin at a time. Runpod must be able to reach the signed transfer URLs through your ingress without an interactive login. See the [worker deployment guide](runpod/README.md) for GPU image updates. A website deployment does not require publishing a GPU image.
+
+Optional env settings include `DATABASE_DIR`, `IMAGES_DIR`, and `SCANS_DIR` for existing absolute bind paths. Create those exact directories first. For password recovery configure `RESET_EMAIL_WEBHOOK_URL` and `RESET_EMAIL_WEBHOOK_SECRET` for a service that delivers the email. Google sign-in uses `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and the callback `https://market.example.com/api/auth/callback/google`.
+
+### Start and check
+
+Define this shell function again when opening a new SSH session. Run it from the Compose working directory:
 
 ```sh
-./deploy/configure.sh market.example.com you@example.com
-sudo chown 1000:1000 storage/images
-sudo chmod 750 storage/images
-docker compose --env-file .env.production up -d --build
-docker compose --env-file .env.production ps -a
-docker compose --env-file .env.production logs -f --tail=100 migrate web game caddy
+dc() { docker compose --env-file .env.production "$@"; }
+dc config -q
+dc config --services
+dc build
+dc up -d --wait --wait-timeout 300
+dc ps -a
+dc logs --tail=60 migrate web game caddy
 ```
 
-The configuration script creates **`.env.production`**, mode `600`, with three
-independent random secrets. It refuses to overwrite an existing file. Keep this
-file private and back it up. It is ignored by Git and excluded from Docker's
-build context. No production secrets are embedded in the images/browser export.
-The runtime entrypoint URL-encodes the database password automatically.
+The Runpod configuration must list `scan-dispatcher` in `dc config --services`. Avoid publishing full rendered Compose config or signed URLs in logs. The `migrate` container must exit 0 before web starts. The internal web probe uses the shared game credential. Caddy deliberately returns 404 for public `/api/health`. Game waits for web, then Caddy waits for both. Check `dc ps scan-dispatcher` and `dc logs --tail=40 scan-dispatcher` if using the overlay.
 
-The configuration script also prepares this layout beside the Compose file:
+### First administrator and acceptance checks
 
-```text
-config/
-  Caddyfile
-database/
-docker-compose.yaml
-storage/
-  images/
-  models/
-```
-
-`./database` is bind-mounted at `/var/lib/postgresql` (PostgreSQL 18 keeps
-its cluster beneath that directory). `./storage/images` is bind-mounted at
-`/data/media` in both the web and cleanup containers. Both run as UID/GID
-`1000:1000`, so the image directory needs the ownership shown above. PostgreSQL's
-entrypoint manages its own data-directory permissions. Missing bind directories
-cause startup to fail instead of silently creating root-owned upload directories.
-`storage/models` is reserved; current game models are built into the game exports.
-Caddy reads `config/Caddyfile`; its certificates still use named volumes.
-
-If you already generated `.env.production`, prepare the directories separately:
+Sign up at `/sign-up`. New users reach the approval prompt. The migration grants approval to existing Admin accounts so they can issue invitations. For a database without an admin, register the intended operator's account first, verify its identity, then open:
 
 ```sh
-mkdir -p config database storage/images storage/models
-# Copy the template only if you do not already have a Caddyfile.
-test -e config/Caddyfile || cp deploy/Caddyfile config/Caddyfile
-sudo chown 1000:1000 storage/images
-sudo chmod 750 storage/images
+dc exec postgres psql -U thriftwalk -d thriftwalk
 ```
 
-These paths are relative to the Compose file. Building from source still requires
-the repository's Dockerfile, `game`, `web`, and `deploy` files alongside this layout.
-Existing data in the previous named volumes is **not automatically moved**:
-back it up using the old configuration and restore it into the new bind mounts
-before switching a populated deployment. Keep the old volumes until verified.
+At the psql prompt, enter the exact email when asked, verify the returned ID, and use that ID in the second prompt:
 
-On first startup, `migrate` applies all committed migrations with
-`zen migrate deploy`. Next.js starts only after that succeeds; Godot and Caddy
-wait for application health. `migrate` showing **Exited (0)** is expected. No
-seed/demo accounts are created. Register your own account at:
-
-- `https://market.example.com/sign-up`
-- `https://market.example.com/play`
-
-Caddy obtains and renews its TLS certificate automatically. The first certificate
-may take a short time to issue. If it fails, check DNS, TCP 80/443 reachability,
-and `docker compose --env-file .env.production logs caddy`.
-
-### Optional account integrations
-
-Edit `.env.production` to configure `RESET_EMAIL_WEBHOOK_URL` and
-`RESET_EMAIL_WEBHOOK_SECRET` for password recovery. The endpoint receives
-`{ to, name, resetUrl }` with a bearer credential and must actually send email.
-Until configured, password-recovery email delivery is unavailable.
-
-Google login is optional: set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`, and
-register `https://market.example.com/api/auth/callback/google` with Google.
-Apply environment changes with `docker compose --env-file .env.production up -d`.
-
-## What runs
-
-| Service | Purpose | Persistence / exposure |
-| --- | --- | --- |
-| `postgres` | PostgreSQL 18 | `./database` bind mount; no host port |
-| `migrate` | One-shot production migrations | Must succeed before web starts |
-| `web` | Next.js standalone server | `./storage/images` bind mount; private port 3000 |
-| `game` | Headless Godot dedicated server | Private WebSocket port 8080 |
-| `caddy` | HTTPS and WebSocket reverse proxy | Public 80/443; certificate/config volumes |
-| `cleanup` | Optional one-shot media maintenance | Only started explicitly |
-
-Caddy serves normal requests through Next.js and forwards `/game-socket` to
-Godot. Both exports are built by the same pinned Godot 4.7.2 stage, so deployed
-browser/server protocols match. Game assets use `Cache-Control: no-cache` to
-revalidate after deployments. Existing open browser tabs still need a refresh
-when game code changes.
-
-The dedicated server calls `http://thrift-web:3000` over the private Compose
-network. This alias also meets Godot's minimum HTTP hostname length.
-`THRIFT_ALLOW_INTERNAL_HTTP=true` permits this **only for dedicated-server API
-requests**. Browser/native client transport restrictions remain unchanged;
-public connections use HTTPS/WSS. The database has its own internal network.
-Caddy does not expose `/api/health`, which checks database/migration readiness.
-
-Next.js and Godot run as unprivileged users. The PostgreSQL password is runtime
-configuration; the shared game secret is supplied only to Next.js and the
-headless server. Do not scale `game` beyond one instance: admission/presence and
-the demo world currently assume a single authoritative game server.
-
-## Updates and operations
-
-From the same directory, using the same `.env.production` and Compose project:
-
-```sh
-# Back up first, especially when the update includes database migrations.
-git pull --ff-only
-git lfs pull
-docker compose --env-file .env.production up -d --build
-docker compose --env-file .env.production ps -a
+```sql
+\prompt 'Operator email: ' email
+SELECT id, email, role, approved FROM "user" WHERE email = :'email';
+\prompt 'Verified operator ID: ' uid
+UPDATE "user" SET role = 'Admin', approved = true
+WHERE id = :'uid' AND email = :'email' RETURNING id, email, role, approved;
+\q
 ```
 
-This rebuilds the matching exports, reruns pending migrations, and replaces
-changed containers. Plan a short interruption and refresh browser game tabs.
-Do not update only the game container or only its browser export.
+Verify exactly one updated account. Open **Profile → Approval Codes** and generate a code. In another browser session, sign up, redeem that code, and open the originally requested page. The code disappears from the admin list on refresh. Unused codes can be copied or deleted and have no expiration date. A signed-out request to `/api/market/session` should return 401; an unapproved session returns 403. Confirm an approved account can open `/play`, join the game, and load listing media. Both browser and dedicated exports come from the same Godot build. On a clean import the Tiny Store FBX references five missing PavingStones127/Concrete025 texture files and Godot skips them. The existing Next.js build also reports a ZenStack dynamic-require warning. Both exports and the standalone web image built with these warnings during the deployment rehearsal.
 
-Useful commands:
+For cloud scans, upload 3–10 photos as an approved user. Check that the job completes and its GLB and preview remain available after web/dispatcher recreation. A real submission invokes the paid endpoint. A healthy web container alone does not verify public TLS, callback reachability, or GPU reconstruction.
 
-```sh
-# Stop while retaining all data.
-docker compose --env-file .env.production down
+## Update an existing server
 
-# Start again (or after a reboot; services also have restart policies).
-docker compose --env-file .env.production up -d
+1. Record the running source revision and image IDs (`dc images`), the Compose files, bind paths, and project name. Preserve any locally customized Caddyfile or Compose settings. For older in-checkout deployments add `THRIFT_SOURCE_DIR=.` to the existing env file. Keep existing credentials, especially the database password. Changing its env value alone does not change the PostgreSQL role password.
+2. Drain pending and processing scans before maintenance. Pause new uploads and check the queue in PostgreSQL with `SELECT status, count(*) FROM scan_job GROUP BY status;`. When moving from a local worker or another host, copy the entire previous scan root to the configured scan bind path, preserving per-job directories. Stop the old worker before starting the dispatcher. If old data lives in named volumes, restore it into the target bind paths first.
+3. Take a consistent backup as described below. Fetch the desired release in the source checkout and run `git lfs pull`. In a separate deployment directory, merge the release’s `thrift-walk/docker-compose.yaml` into the active parent `docker-compose.yaml`. Compare the checkout’s `deploy/Caddyfile` with your active `config/Caddyfile`. In particular, the web health probe must send its service credential. Add the overlay/env settings above when enabling Runpod. Create the scan directory and set ownership and permissions as in the fresh install.
+4. Run `dc config -q`, check `dc config --services`, then `dc build`. A failed build leaves the running containers in place. For cutover, stop the app services as in the backup procedure, take a final consistent backup if writes resumed, then run `dc up -d --wait --wait-timeout 300` and repeat the acceptance checks. PostgreSQL migrations run automatically. Existing non-admin users need approval after this upgrade.
+5. If startup fails, inspect `dc ps -a` and `dc logs --tail=100 migrate web game caddy` plus dispatcher logs. Preserve failed migration details. For rollback use the matching previous source/configuration and images. If the old app is incompatible with a migrated schema, restore the pre-upgrade database and files to fresh paths before restarting it. Retain the original paths through verification.
 
-# Remove unattached images older than 24 hours and expired rate-limit buckets.
-docker compose --env-file .env.production run --rm cleanup
-```
-
-Run cleanup daily, for example from your server's scheduler, with the repository
-as the working directory. The cleanup command is safe alongside normal uploads.
-
-**`down -v` deletes Caddy's certificate/config volumes.** It does not remove
-`database` or `storage/images`; those are host directories. Ordinary `down`,
-container recreation, and image rebuilds retain both bind-mounted data and named volumes. PostgreSQL is pinned to major version 18;
-changing major versions requires a planned database upgrade/restore, not just
-changing the image tag. Do not rotate `POSTGRES_PASSWORD` in the env file alone
-for an existing database: update the database role password too.
+Ordinary `dc down` and recreation preserve host data and named volumes. `down -v` removes Caddy’s certificate/config volumes. Keep PostgreSQL on major version 18 until a planned major upgrade. Run `dc run --rm cleanup` periodically to remove old unattached marketplace images and expired rate-limit buckets. Keep one game server and one dispatcher per database.
 
 ## Backup and restore
 
-Back up the database, uploaded media and `.env.production` together. A database
-backup by itself does not contain uploaded image bytes. These commands briefly
-stop application writes so the database and image archive are consistent:
+Run these commands in Bash from the configured deployment directory. The web container reads the actual image and scan mounts, including custom host paths. Quiesce writes and drain cloud jobs first. Pause scheduled cleanup during backup. The following backup leaves app services stopped so you can perform maintenance or restart them after verifying the archive:
 
 ```sh
-mkdir -p backups
-chmod 700 backups
+set -e
 umask 077
-docker compose --env-file .env.production stop caddy game web
-docker compose --env-file .env.production exec -T postgres \
-  pg_dump -U thriftwalk -d thriftwalk -Fc > backups/database.dump
-docker compose --env-file .env.production run --rm --no-deps -T \
-  --entrypoint tar cleanup -C /data/media -czf - . > backups/media.tar.gz
-cp .env.production backups/environment
-docker compose --env-file .env.production start web game caddy
+backup="backups/$(date -u +%Y%m%dT%H%M%SZ)"
+mkdir -p "$backup"
+dc stop caddy game
+if dc config --services | grep -qx scan-dispatcher; then dc stop scan-dispatcher; fi
+dc stop web
+dc exec -T postgres pg_dump -U thriftwalk -d thriftwalk -Fc > "$backup/database.dump"
+dc run --rm --no-deps -T --entrypoint tar web -C /data/media -czf - . > "$backup/images.tgz"
+if dc config --services | grep -qx scan-dispatcher; then
+  dc run --rm --no-deps -T --entrypoint tar web -C /data/scans -czf - . > "$backup/scans.tgz"
+fi
+cp .env.production docker-compose.yaml config/Caddyfile "$backup/"
+dc exec -T postgres pg_restore --list < "$backup/database.dump" > /dev/null
+gzip -t "$backup"/*.tgz
+# After a backup-only maintenance window:
+dc up -d --wait --wait-timeout 300
 ```
 
-Copy backups off the server. Use dated directories/files for repeated backups.
-Caddy's certificate volume may also be backed up; otherwise Caddy can obtain
-new certificates after restore, subject to certificate-authority rate limits.
+Copy the private backup off-server. Also preserve any custom overlays, the exact source revision, and Caddy named volumes if you want to retain issued certificates. Protect the dump as credential-bearing data. If scan storage exists on a previous host or outside the configured mounts, archive it separately before switching.
 
-To restore into a **fresh stack**, restore the protected environment file first,
-then build the images and start only PostgreSQL:
+Restore into a **fresh deployment directory and empty database/media/scan paths**, using the original release, Compose project settings and saved environment. Check custom bind paths in the restored env before starting anything. Restore the saved Caddyfile to `config/Caddyfile`. Prepare bind directory permissions as above. With `backup` pointing to the chosen archive:
 
 ```sh
-cp backups/environment .env.production
-chmod 600 .env.production
-mkdir -p config database storage/images storage/models
-test -e config/Caddyfile || cp deploy/Caddyfile config/Caddyfile
-sudo chown 1000:1000 storage/images
-sudo chmod 750 storage/images
-docker compose --env-file .env.production build
-docker compose --env-file .env.production up -d --wait postgres
-docker compose --env-file .env.production exec -T postgres \
-  pg_restore -U thriftwalk -d thriftwalk --no-owner < backups/database.dump
-docker compose --env-file .env.production run --rm --no-deps -T \
-  --entrypoint tar cleanup -C /data/media -xzf - < backups/media.tar.gz
-docker compose --env-file .env.production up -d
+dc config -q
+dc build
+dc up -d --wait postgres
+dc exec -T postgres pg_restore --exit-on-error --no-owner -U thriftwalk -d thriftwalk < "$backup/database.dump"
+dc run --rm --no-deps -T --entrypoint tar web -C /data/media -xzf - < "$backup/images.tgz"
+if dc config --services | grep -qx scan-dispatcher; then
+  dc run --rm --no-deps -T --entrypoint tar web -C /data/scans -xzf - < "$backup/scans.tgz"
+fi
+dc up -d --wait --wait-timeout 300
+dc ps -a
 ```
 
-The normal startup migration job applies any newer migrations after restore.
-These restore commands assume an empty target database/image directories.
-
-## Local container smoke test
-
-Production configuration defaults to public HTTPS. For an isolated loopback
-smoke test, use a separate env file with disposable secrets and these overrides:
-
-```dotenv
-PUBLIC_ORIGIN=http://localhost:19080
-CADDY_SITE_ADDRESS=http://localhost
-ACME_EMAIL=test@example.com
-BIND_IP=127.0.0.1
-HTTP_PORT=19080
-HTTPS_PORT=19443
-DATABASE_DIR=/tmp/thrift-deploy-test/database
-IMAGES_DIR=/tmp/thrift-deploy-test/images
-POSTGRES_PASSWORD=disposable-test-password
-BETTER_AUTH_SECRET=disposable-test-auth-secret-at-least-32-characters
-GAME_SERVER_SECRET=disposable-test-game-secret-at-least-32-characters
-```
-
-Start it with `docker compose --env-file /path/to/test.env -p thrift-deploy-test
-up -d --build`. Visit `http://localhost:19080`. Use a separate project name to
-isolate Caddy volumes from production. Bind mounts are **not isolated by project
-name**: use the separate absolute paths above, create them before starting, and
-set the test images directory to UID/GID `1000:1000`. Prepare `config/Caddyfile`
-as shown above. Public deployments must use HTTPS.
-
-References: [Next.js Docker deployment](https://docs.docker.com/guides/nextjs/),
-[Caddy WebSocket proxying](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy),
-[PostgreSQL 18 volume layout](https://docs.docker.com/guides/postgresql/immediate-setup-and-data-persistence/).
+Recheck login, approval, listings, game admission, and a stored scan preview. If startup fails after restoring, inspect the one-shot migration logs before opening traffic. A fresh PostgreSQL 18 cluster must mount the parent `/var/lib/postgresql`. Migrations on startup bring the restored schema to the selected release.

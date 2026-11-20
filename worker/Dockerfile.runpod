@@ -1,0 +1,26 @@
+# Build from the repository root. Pinned upstream source includes nested submodules.
+FROM pytorch/pytorch:2.7.1-cuda12.8-cudnn9-devel
+ARG MAST3R_REVISION=f5209afc300cec36239a7ac992263f36847bbba0
+ARG MODEL_REVISION=06e7259f34c3060f322df5cb0c7b9094f57e41fc
+ENV DEBIAN_FRONTEND=noninteractive PYTHONUNBUFFERED=1 HF_HOME=/opt/hf
+RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates blender libgl1 libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+RUN git clone https://github.com/naver/mast3r.git mast3r \
+    && git -C mast3r checkout "$MAST3R_REVISION" \
+    && git -C mast3r submodule update --init --recursive
+COPY worker/requirements-runpod.txt ./
+RUN pip install --no-cache-dir -r requirements-runpod.txt
+# Compile RoPE for the approved Ampere/Ada GPU types, without needing a build GPU.
+ENV TORCH_CUDA_ARCH_LIST="8.6;8.9+PTX"
+RUN cd mast3r/dust3r/croco/models/curope && python setup.py build_ext --inplace
+RUN MODEL_REVISION="$MODEL_REVISION" python -c 'import os; from huggingface_hub import snapshot_download; snapshot_download("naver/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric", revision=os.environ["MODEL_REVISION"], local_dir="/opt/model", allow_patterns=["config.json", "*.safetensors", "pytorch_model.bin"])'
+# Ubuntu's Blender uses system Python, not the Conda environment above.
+RUN apt-get update && apt-get install -y --no-install-recommends python3-numpy \
+    && rm -rf /var/lib/apt/lists/*
+COPY worker/pipeline.py worker/preview.py worker/render_preview.py worker/runpod_handler.py ./
+COPY worker/texture.py worker/unwrap_texture.py worker/smoke_texture.py worker/smoke_preview.py ./
+RUN python smoke_texture.py
+RUN python smoke_preview.py
+ENV SCAN_MODEL_PATH=/opt/model HF_HUB_OFFLINE=1
+CMD ["python", "-u", "runpod_handler.py"]

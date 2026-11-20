@@ -1,7 +1,10 @@
 "use client";
+import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+
+import { SCANS_QUERY_KEY, type ScanSummary } from "@/lib/scan-config";
 
 type Store = { id: string; name: string };
 type Item = {
@@ -10,6 +13,7 @@ type Item = {
     details: string;
     externalUrl: string | null;
     imageAssetId: string | null;
+    scanJobId: string | null;
     placementId: string | null;
 };
 async function api(path: string, method = "GET", body?: unknown) {
@@ -337,10 +341,14 @@ export function OwnerInventory({ name }: { name: string }) {
                         className="flex min-w-0 flex-col overflow-hidden rounded-box border-2 border-base-content bg-base-100"
                     >
                         <div className="relative flex aspect-[4/3] shrink-0 items-center justify-center border-b-2 border-base-content bg-base-200">
-                            {item.imageAssetId ? (
+                            {item.imageAssetId || item.scanJobId ? (
                                 <Image
                                     unoptimized
-                                    src={`/api/media/${item.imageAssetId}?thumb=1`}
+                                    src={
+                                        item.scanJobId
+                                            ? `/api/media/models/${item.scanJobId}?preview=1`
+                                            : `/api/media/${item.imageAssetId}?thumb=1`
+                                    }
                                     alt={item.name}
                                     fill
                                     sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw"
@@ -348,7 +356,9 @@ export function OwnerInventory({ name }: { name: string }) {
                                 />
                             ) : (
                                 <span className="text-base-content/60">
-                                    No image
+                                    {item.scanJobId
+                                        ? "3D scan model"
+                                        : "No image"}
                                 </span>
                             )}
                         </div>
@@ -425,8 +435,8 @@ export function OwnerInventory({ name }: { name: string }) {
                         Delete “{deleting.name}”?
                     </h2>
                     <p className="my-3">
-                        All items in this store and their world frames will be
-                        removed. This cannot be undone.
+                        All items in this store and their world placements will
+                        be removed. This cannot be undone.
                     </p>
                     <div className="flex flex-wrap gap-3">
                         <button
@@ -471,6 +481,23 @@ function ItemForm({
         ),
         imageId = useRef(item.imageAssetId || "");
     const uploadedFile = useRef("");
+    const [mediaType, setMediaType] = useState(
+        item.scanJobId ? "model" : "image",
+    );
+    const [scanJobId, setScanJobId] = useState(item.scanJobId || "");
+    const scans = useQuery({
+        queryKey: SCANS_QUERY_KEY,
+        queryFn: async (): Promise<ScanSummary[]> => {
+            const response = await fetch("/api/scan", { cache: "no-store" });
+            if (!response.ok) throw new Error("Could not load your scans.");
+            return (await response.json()).scans;
+        },
+        enabled: mediaType === "model",
+    });
+    const completedScans = (scans.data || []).filter(
+        (scan) => scan.status === "Completed",
+    );
+
     async function submit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         if (busy) return;
@@ -478,7 +505,7 @@ function ItemForm({
         setBusy(true);
         setError("");
         try {
-            const image = form.get("image");
+            const image = mediaType === "image" ? form.get("image") : null;
             const fileKey =
                 image instanceof File
                     ? `${image.name}:${image.size}:${image.lastModified}`
@@ -499,14 +526,18 @@ function ItemForm({
                 imageId.current = uploaded.id;
                 uploadedFile.current = fileKey;
             }
-            if (!imageId.current) throw new Error("Choose an image.");
+            if (mediaType === "image" && !imageId.current)
+                throw new Error("Choose an image.");
+            if (mediaType === "model" && !scanJobId)
+                throw new Error("Choose a completed 3D scan.");
             const body = {
                 id: item.id,
                 storeId,
                 name: form.get("name"),
                 details: form.get("details"),
                 externalUrl: form.get("externalUrl"),
-                imageAssetId: imageId.current,
+                imageAssetId: mediaType === "image" ? imageId.current : null,
+                scanJobId: mediaType === "model" ? scanJobId : null,
             };
             const fingerprint = JSON.stringify(body);
             if (pending.current?.fingerprint !== fingerprint)
@@ -567,17 +598,120 @@ function ItemForm({
                         defaultValue={item.externalUrl || ""}
                     />
                 </label>
-                <label>
-                    Image (JPEG, PNG, WebP · 10 MB · 4096 pixels)
-                    <input
-                        name="image"
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp"
-                        className="file-input block w-full"
-                    />
-                </label>
+                <fieldset className="flex flex-wrap gap-4">
+                    <legend className="mb-2 font-semibold">Display as</legend>
+                    <label className="flex items-center gap-2">
+                        <input
+                            type="radio"
+                            name="mediaType"
+                            value="image"
+                            className="radio"
+                            checked={mediaType === "image"}
+                            onChange={() => setMediaType("image")}
+                        />
+                        Image in a frame
+                    </label>
+                    <label className="flex items-center gap-2">
+                        <input
+                            type="radio"
+                            name="mediaType"
+                            value="model"
+                            className="radio"
+                            checked={mediaType === "model"}
+                            onChange={() => setMediaType("model")}
+                        />
+                        3D scan model
+                    </label>
+                </fieldset>
+                {mediaType === "image" ? (
+                    <label>
+                        Image (JPEG, PNG, WebP · 10 MB · 4096 pixels)
+                        <input
+                            name="image"
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            className="file-input block w-full"
+                        />
+                        {item.imageAssetId && (
+                            <span className="text-sm">
+                                Leave empty to keep the current image.
+                            </span>
+                        )}
+                    </label>
+                ) : (
+                    <div className="space-y-2">
+                        <label className="block">
+                            Your completed 3D scans
+                            <select
+                                className="select block w-full"
+                                value={scanJobId}
+                                required
+                                disabled={scans.isPending || !!scans.error}
+                                onChange={(e) => setScanJobId(e.target.value)}
+                            >
+                                <option value="">Choose a 3D scan</option>
+                                {completedScans.map((scan) => (
+                                    <option key={scan.id} value={scan.id}>
+                                        {scan.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+                        {scanJobId && (
+                            <Image
+                                unoptimized
+                                src={`/api/scan/${encodeURIComponent(scanJobId)}/model?preview=1`}
+                                alt="Selected scan preview"
+                                width={160}
+                                height={160}
+                                className="rounded-box object-contain"
+                            />
+                        )}
+                        {scans.isPending && <p role="status">Loading scans…</p>}
+                        {scans.error && (
+                            <p role="alert">
+                                Could not load your scans.{" "}
+                                <button
+                                    type="button"
+                                    className="link"
+                                    onClick={() => void scans.refetch()}
+                                >
+                                    Retry
+                                </button>
+                            </p>
+                        )}
+                        {!scans.isPending &&
+                            !scans.error &&
+                            completedScans.length === 0 && (
+                                <p>
+                                    No completed scans yet.{" "}
+                                    <Link
+                                        className="link"
+                                        href="/my-store/upload"
+                                    >
+                                        Create a 3D scan
+                                    </Link>
+                                </p>
+                            )}
+                        <p className="text-sm text-base-content/70">
+                            The model sits on a table in-game. Changing between
+                            an image and model returns the item to inventory.
+                        </p>
+                    </div>
+                )}
                 <div className="flex gap-3">
-                    <button type="submit" className="btn btn-primary">
+                    <button
+                        type="submit"
+                        className="btn btn-primary"
+                        disabled={
+                            mediaType === "model" &&
+                            (scans.isPending ||
+                                !!scans.error ||
+                                !completedScans.some(
+                                    (scan) => scan.id === scanJobId,
+                                ))
+                        }
+                    >
                         {busy ? "Saving…" : "Save item"}
                     </button>
                     <button type="button" className="btn" onClick={onCancel}>

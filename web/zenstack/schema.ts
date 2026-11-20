@@ -81,6 +81,22 @@ export class SchemaType implements SchemaDef {
                     ] as readonly AttributeApplication[],
                     default: false as FieldDefault,
                 },
+                approved: {
+                    name: "approved",
+                    type: "Boolean",
+                    attributes: [
+                        {
+                            name: "@default",
+                            args: [
+                                {
+                                    name: "value",
+                                    value: ExpressionUtils.literal(false),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    default: false as FieldDefault,
+                },
                 image: {
                     name: "image",
                     type: "String",
@@ -214,6 +230,34 @@ export class SchemaType implements SchemaDef {
             uniqueFields: {
                 id: { type: "String" },
                 email: { type: "String" },
+            },
+        },
+        ApprovalCode: {
+            name: "ApprovalCode",
+            fields: {
+                code: {
+                    name: "code",
+                    type: "String",
+                    id: true,
+                    attributes: [
+                        { name: "@id" },
+                    ] as readonly AttributeApplication[],
+                },
+            },
+            attributes: [
+                {
+                    name: "@@map",
+                    args: [
+                        {
+                            name: "name",
+                            value: ExpressionUtils.literal("approval_code"),
+                        },
+                    ],
+                },
+            ] as readonly AttributeApplication[],
+            idFields: ["code"],
+            uniqueFields: {
+                code: { type: "String" },
             },
         },
         Session: {
@@ -691,6 +735,46 @@ export class SchemaType implements SchemaDef {
                         references: ["id"],
                     },
                 },
+                scanJobId: {
+                    name: "scanJobId",
+                    type: "String",
+                    optional: true,
+                    foreignKeyFor: ["scanJob"] as readonly string[],
+                },
+                scanJob: {
+                    name: "scanJob",
+                    type: "ScanJob",
+                    optional: true,
+                    attributes: [
+                        {
+                            name: "@relation",
+                            args: [
+                                {
+                                    name: "fields",
+                                    value: ExpressionUtils.array("String", [
+                                        ExpressionUtils.field("scanJobId"),
+                                    ]),
+                                },
+                                {
+                                    name: "references",
+                                    value: ExpressionUtils.array("String", [
+                                        ExpressionUtils.field("id"),
+                                    ]),
+                                },
+                                {
+                                    name: "onDelete",
+                                    value: ExpressionUtils.literal("Restrict"),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    relation: {
+                        opposite: "items",
+                        fields: ["scanJobId"],
+                        references: ["id"],
+                        onDelete: "Restrict",
+                    },
+                },
                 externalUrl: {
                     name: "externalUrl",
                     type: "String",
@@ -704,6 +788,17 @@ export class SchemaType implements SchemaDef {
                 },
             },
             attributes: [
+                {
+                    name: "@@index",
+                    args: [
+                        {
+                            name: "fields",
+                            value: ExpressionUtils.array("String", [
+                                ExpressionUtils.field("scanJobId"),
+                            ]),
+                        },
+                    ],
+                },
                 {
                     name: "@@map",
                     args: [
@@ -1706,6 +1801,18 @@ export class SchemaType implements SchemaDef {
                     type: "String",
                     array: true,
                 },
+                items: {
+                    name: "items",
+                    type: "Item",
+                    array: true,
+                    relation: { opposite: "scanJob" },
+                },
+                runpodDispatch: {
+                    name: "runpodDispatch",
+                    type: "ScanRunpodDispatch",
+                    optional: true,
+                    relation: { opposite: "job" },
+                },
                 glbPath: {
                     name: "glbPath",
                     type: "String",
@@ -1823,6 +1930,141 @@ export class SchemaType implements SchemaDef {
             idFields: ["id"],
             uniqueFields: {
                 id: { type: "String" },
+            },
+        },
+        ScanRunpodDispatch: {
+            name: "ScanRunpodDispatch",
+            fields: {
+                jobId: {
+                    name: "jobId",
+                    type: "String",
+                    id: true,
+                    attributes: [
+                        { name: "@id" },
+                        {
+                            name: "@map",
+                            args: [
+                                {
+                                    name: "name",
+                                    value: ExpressionUtils.literal("job_id"),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    foreignKeyFor: ["job"] as readonly string[],
+                },
+                job: {
+                    name: "job",
+                    type: "ScanJob",
+                    attributes: [
+                        {
+                            name: "@relation",
+                            args: [
+                                {
+                                    name: "fields",
+                                    value: ExpressionUtils.array("String", [
+                                        ExpressionUtils.field("jobId"),
+                                    ]),
+                                },
+                                {
+                                    name: "references",
+                                    value: ExpressionUtils.array("String", [
+                                        ExpressionUtils.field("id"),
+                                    ]),
+                                },
+                                {
+                                    name: "onDelete",
+                                    value: ExpressionUtils.literal("Cascade"),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                    relation: {
+                        opposite: "runpodDispatch",
+                        fields: ["jobId"],
+                        references: ["id"],
+                        onDelete: "Cascade",
+                    },
+                },
+                remoteId: {
+                    name: "remoteId",
+                    type: "String",
+                    optional: true,
+                    attributes: [
+                        {
+                            name: "@map",
+                            args: [
+                                {
+                                    name: "name",
+                                    value: ExpressionUtils.literal("remote_id"),
+                                },
+                            ],
+                        },
+                    ] as readonly AttributeApplication[],
+                },
+                expiresAt: {
+                    name: "expiresAt",
+                    type: "DateTime",
+                    attributes: [
+                        {
+                            name: "@map",
+                            args: [
+                                {
+                                    name: "name",
+                                    value: ExpressionUtils.literal(
+                                        "expires_at",
+                                    ),
+                                },
+                            ],
+                        },
+                        { name: "@db.Timestamptz" },
+                    ] as readonly AttributeApplication[],
+                },
+                createdAt: {
+                    name: "createdAt",
+                    type: "DateTime",
+                    attributes: [
+                        {
+                            name: "@default",
+                            args: [
+                                {
+                                    name: "value",
+                                    value: ExpressionUtils.call("now"),
+                                },
+                            ],
+                        },
+                        {
+                            name: "@map",
+                            args: [
+                                {
+                                    name: "name",
+                                    value: ExpressionUtils.literal(
+                                        "created_at",
+                                    ),
+                                },
+                            ],
+                        },
+                        { name: "@db.Timestamptz" },
+                    ] as readonly AttributeApplication[],
+                    default: ExpressionUtils.call("now") as FieldDefault,
+                },
+            },
+            attributes: [
+                {
+                    name: "@@map",
+                    args: [
+                        {
+                            name: "name",
+                            value: ExpressionUtils.literal(
+                                "scan_runpod_dispatch",
+                            ),
+                        },
+                    ],
+                },
+            ] as readonly AttributeApplication[],
+            idFields: ["jobId"],
+            uniqueFields: {
+                jobId: { type: "String" },
             },
         },
     } as const;
@@ -1999,6 +2241,11 @@ export class SchemaType implements SchemaDef {
                     type: "String",
                     optional: true,
                 },
+                scanJobId: {
+                    name: "scanJobId",
+                    type: "String",
+                    optional: true,
+                },
                 storeName: {
                     name: "storeName",
                     type: "String",
@@ -2058,7 +2305,16 @@ export class SchemaType implements SchemaDef {
                 id: { name: "id", optional: true, type: "String" },
                 name: { name: "name", type: "String" },
                 details: { name: "details", type: "String" },
-                imageAssetId: { name: "imageAssetId", type: "String" },
+                imageAssetId: {
+                    name: "imageAssetId",
+                    optional: true,
+                    type: "String",
+                },
+                scanJobId: {
+                    name: "scanJobId",
+                    optional: true,
+                    type: "String",
+                },
                 externalUrl: { name: "externalUrl", type: "String" },
                 receipt: { name: "receipt", type: "MarketReceipt" },
             },

@@ -1,25 +1,28 @@
 import { type NextRequest, NextResponse } from "next/server";
 
+import { currentSession } from "@/lib/approval";
 import { auth } from "@/lib/auth";
 
 /** Pages reachable without a session. Everything else is gated by default. */
 const PUBLIC_PAGES = new Set([
-    "/api/health",
     "/sign-in",
     "/sign-up",
     "/forgot-password",
     "/reset-password",
-    "/play",
+    "/api/auth/sign-in/email",
+    "/api/auth/sign-up/email",
+    "/api/auth/sign-in/social",
+    "/api/auth/callback/google",
+    "/api/auth/error",
+    "/api/auth/sign-out",
+    "/api/auth/request-password-reset",
+    "/api/auth/reset-password",
 ]);
 
 function isPublic(pathname: string) {
     return (
         PUBLIC_PAGES.has(pathname) ||
-        pathname.startsWith("/api/auth/") ||
-        // These handlers enforce their own session or trusted-server identity.
-        pathname.startsWith("/api/market/") ||
-        pathname.startsWith("/api/media/") ||
-        pathname.startsWith("/game/")
+        /^\/api\/auth\/reset-password\/[^/]+$/.test(pathname)
     );
 }
 
@@ -49,22 +52,40 @@ export default async function proxy(request: NextRequest) {
         return signOut(request);
     }
 
-    if (isPublic(pathname)) {
+    if (
+        isPublic(pathname) ||
+        pathname.startsWith("/api/market/server/") ||
+        pathname.startsWith("/api/scan-transfer/") ||
+        (pathname === "/api/health" && request.headers.has("authorization"))
+    ) {
         return NextResponse.next();
     }
 
-    const session = await auth.api.getSession({ headers: request.headers });
+    const session = await currentSession(request.headers);
 
-    if (session) {
+    if (session?.user.approved || (session && pathname === "/approval")) {
         return NextResponse.next();
     }
 
     if (pathname.startsWith("/api/")) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const message = session
+            ? "Account approval required."
+            : "Sign in required.";
+        return NextResponse.json(
+            {
+                error: message,
+                message,
+                code: session ? "APPROVAL_REQUIRED" : "SESSION_ENDED",
+            },
+            {
+                status: session ? 403 : 401,
+                headers: { "Cache-Control": "no-store" },
+            },
+        );
     }
 
     const signInUrl = request.nextUrl.clone();
-    signInUrl.pathname = "/sign-in";
+    signInUrl.pathname = session ? "/approval" : "/sign-in";
     signInUrl.search = "";
     // Keep the original path and query string so we can send them back after sign-in.
     signInUrl.searchParams.set("redirect", pathname + search);
@@ -73,9 +94,5 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-    // Run on everything except static assets.
-    // Default-deny: new pages are protected automatically.
-    matcher: [
-        "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
-    ],
+    matcher: ["/((?!_next/static/|favicon\\.ico$).*)"],
 };

@@ -13,6 +13,8 @@ export async function session(req: Request) {
         query: { disableCookieCache: true },
     });
     if (!s) fail(401, "SESSION_ENDED", "Your session ended. Sign in again.");
+    if (!s.user.approved)
+        fail(403, "APPROVAL_REQUIRED", "Account approval required.");
     return s;
 }
 export function trusted(req: Request) {
@@ -88,7 +90,14 @@ export async function clientOperation(
                     ...(b.id ? { id: text(b.id, "Item ID") } : {}),
                     name: text(b.name, "Title"),
                     details: text(b.details, "Description", 5000),
-                    imageAssetId: text(b.imageAssetId, "Image"),
+                    imageAssetId:
+                        b.imageAssetId == null
+                            ? undefined
+                            : text(b.imageAssetId, "Image"),
+                    scanJobId:
+                        b.scanJobId == null
+                            ? undefined
+                            : text(b.scanJobId, "3D scan"),
                     externalUrl: text(b.externalUrl, "Listing URL", 2048),
                 },
             });

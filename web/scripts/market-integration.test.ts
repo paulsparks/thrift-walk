@@ -6,7 +6,14 @@ import { listingUrl, placement } from "@/lib/market/validation";
 
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { mkdtemp, readdir, readFile, rm } from "node:fs/promises";
+import {
+    mkdir,
+    mkdtemp,
+    readdir,
+    readFile,
+    rm,
+    writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -107,6 +114,81 @@ test("marketplace authorization, persistence and races", async (t) => {
         users.push({ cookie, id: s.user.id, sessionId: s.session.id });
     }
     const [a, b] = users;
+    await t.test(
+        "account approval gates pages and APIs and consumes each code once",
+        async () => {
+            const { issueCode, redeemCode, listCodes, deleteCode } =
+                await import("@/lib/approval");
+            const { default: gate } = await import("@/proxy");
+            const h = (cookie: string) => new Headers({ cookie });
+            const visit = (path: string, cookie = "") =>
+                gate(new NextRequest(origin + path, { headers: h(cookie) }));
+            for (const path of [
+                "/api/market/session",
+                "/api/media/a.png",
+                "/api/scan",
+                "/api/model/item/findMany",
+                "/api/auth/update-user",
+            ]) {
+                assert.equal((await visit(path)).status, 401);
+                assert.equal((await visit(path, a.cookie)).status, 403);
+            }
+            for (const path of ["/profile", "/play", "/game/index.html"]) {
+                assert.equal(
+                    new URL((await visit(path)).headers.get("location") ?? "")
+                        .pathname,
+                    "/sign-in",
+                );
+                const target = new URL(
+                    (await visit(path, a.cookie)).headers.get("location") ?? "",
+                );
+                assert.equal(target.pathname, "/approval");
+                assert.equal(target.searchParams.get("redirect"), path);
+            }
+            assert.equal((await visit("/approval", a.cookie)).status, 200);
+            await rejects(() => issueCode(h(a.cookie)), 403);
+            await db.approvalCode.create({ data: { code: "000007" } });
+            const race = await Promise.allSettled(
+                [a, b].map((u) => redeemCode(h(u.cookie), "000007")),
+            );
+            assert.equal(
+                race.filter((r) => r.status === "fulfilled").length,
+                1,
+            );
+            const winner = race[0].status === "fulfilled" ? a : b;
+            const loser = winner === a ? b : a;
+            assert.equal(await db.approvalCode.count(), 0);
+            assert.equal((await visit("/api/scan", winner.cookie)).status, 200);
+            await rejects(() => redeemCode(h(loser.cookie), "000007"), 422);
+            await rejects(() => issueCode(h(winner.cookie)), 403);
+            await db.user.update({
+                where: { id: winner.id },
+                data: { role: "Admin" },
+            });
+            const revoked = await issueCode(h(winner.cookie));
+            assert.deepEqual(await listCodes(h(winner.cookie)), [revoked]);
+            await rejects(() => listCodes(h(loser.cookie)), 403);
+            await rejects(() => deleteCode(h(loser.cookie), revoked), 403);
+            await deleteCode(h(winner.cookie), revoked);
+            await rejects(() => redeemCode(h(loser.cookie), revoked), 422);
+            assert.deepEqual(await listCodes(h(winner.cookie)), []);
+            const codes = await Promise.all([
+                issueCode(h(winner.cookie)),
+                issueCode(h(winner.cookie)),
+            ]);
+            assert.ok(codes.every((c) => /^\d{6}$/.test(c)));
+            assert.notEqual(codes[0], codes[1]);
+            await Promise.all(
+                codes.map((code) => redeemCode(h(loser.cookie), code)),
+            );
+            assert.equal(await db.approvalCode.count(), 1);
+            assert.equal((await visit("/profile", loser.cookie)).status, 200);
+            await db.user.update({
+                where: { id: winner.id },
+                data: { role: "User" },
+            });
+        },
+    );
     await t.test(
         "procedures require user context and remain private over HTTP",
         async () => {
@@ -712,6 +794,267 @@ test("marketplace authorization, persistence and races", async (t) => {
             }
         },
     );
+    await t.test(
+        "scan items enforce ownership, survive placement, and protect their models",
+        async () => {
+            const models = await import("@/app/api/media/models/[id]/route");
+            const scans = await import("@/app/api/scan/[id]/route");
+            const storage = await mkdtemp(join(tmpdir(), "thrift-model-test-"));
+            const oldStorage = process.env.SCAN_STORAGE_DIR;
+            process.env.SCAN_STORAGE_DIR = storage;
+            const scan = await db.scanJob.create({
+                data: {
+                    name: "Scanned chair",
+                    ownerId: b.id,
+                    status: "Completed",
+                    imagePaths: [],
+                    glbPath: "chair.glb",
+                },
+            });
+            const unfinished = await db.scanJob.create({
+                data: {
+                    name: "Pending chair",
+                    ownerId: b.id,
+                    status: "Pending",
+                    imagePaths: [],
+                },
+            });
+            const foreign = await db.scanJob.create({
+                data: {
+                    name: "Alice scan",
+                    ownerId: a.id,
+                    status: "Completed",
+                    imagePaths: [],
+                    glbPath: "chair.glb",
+                },
+            });
+            const bytes = Buffer.from("test model bytes");
+            await writeFile(join(storage, "chair.glb"), bytes);
+            const context = { params: Promise.resolve({ id: scan.id }) };
+            const modelRequest = new Request(
+                `${origin}/api/media/models/${scan.id}`,
+            );
+            const deleteRequest = new NextRequest(
+                `${origin}/api/scan/${scan.id}`,
+                { method: "DELETE", headers: { cookie: b.cookie } },
+            );
+            const body = {
+                storeId: duplicated[0].id,
+                name: "Model item",
+                details: "A 3D chair",
+                externalUrl: "https://example.com/chair",
+                scanJobId: scan.id,
+                imageAssetId: null,
+                requestId: randomUUID(),
+            };
+            let modelItem: { id: string } | undefined;
+            try {
+                assert.equal(
+                    (await models.GET(modelRequest, context)).status,
+                    404,
+                );
+                for (const invalid of [
+                    { scanJobId: foreign.id },
+                    { scanJobId: unfinished.id },
+                    { scanJobId: "missing" },
+                    { imageAssetId: image },
+                    { scanJobId: null },
+                ])
+                    await rejects(
+                        () =>
+                            clientOperation(request(b.cookie), "item", {
+                                ...body,
+                                ...invalid,
+                                requestId: randomUUID(),
+                            }),
+                        422,
+                    );
+                modelItem = (await clientOperation(
+                    request(b.cookie),
+                    "item",
+                    body,
+                )) as { id: string };
+                assert.deepEqual(
+                    await clientOperation(request(b.cookie), "item", body),
+                    modelItem,
+                );
+                const inventory = (await clientOperation(
+                    request(b.cookie, "GET"),
+                    "inventory",
+                    { storeId: body.storeId },
+                )) as {
+                    items: {
+                        id: string;
+                        scanJobId: string;
+                        imageAssetId: string | null;
+                    }[];
+                };
+                const entry = inventory.items.find(
+                    (i) => i.id === modelItem?.id,
+                );
+                assert.equal(entry?.scanJobId, scan.id);
+                assert.equal(entry?.imageAssetId, null);
+                const served = await models.GET(modelRequest, context);
+                const preview = await sharp({
+                    create: {
+                        width: 800,
+                        height: 800,
+                        channels: 4,
+                        background: { r: 0, g: 0, b: 0, alpha: 0 },
+                    },
+                })
+                    .png()
+                    .toBuffer();
+                await mkdir(join(storage, scan.id));
+                await writeFile(join(storage, scan.id, "preview.png"), preview);
+                const previewResponse = await models.GET(
+                    new Request(`${modelRequest.url}?preview=1`),
+                    context,
+                );
+                assert.equal(
+                    previewResponse.headers.get("content-type"),
+                    "image/png",
+                );
+                assert.deepEqual(
+                    Buffer.from(await previewResponse.arrayBuffer()),
+                    preview,
+                );
+                assert.equal(served.status, 200);
+                assert.equal(
+                    served.headers.get("content-type"),
+                    "model/gltf-binary",
+                );
+                assert.deepEqual(
+                    Buffer.from(await served.arrayBuffer()),
+                    bytes,
+                );
+                assert.equal(
+                    (await scans.DELETE(deleteRequest, context)).status,
+                    409,
+                );
+                await assert.rejects(() =>
+                    db.scanJob.delete({ where: { id: scan.id } }),
+                );
+                await rejects(
+                    () =>
+                        serverOperation(serverRequest(), "place", {
+                            ...p,
+                            itemId: modelItem?.id,
+                            sessionId: b.sessionId,
+                            requestId: randomUUID(),
+                        }),
+                    422,
+                );
+                await serverOperation(serverRequest(), "place", {
+                    ...p,
+                    surfaceId: "lobby-table",
+                    x: 0,
+                    y: 0.9,
+                    z: 2.4,
+                    yaw: Math.PI / 4,
+                    itemId: modelItem?.id,
+                    sessionId: b.sessionId,
+                    requestId: randomUUID(),
+                });
+                const world = await snapshot();
+                assert.equal(
+                    world.placements.find((f) => f.itemId === modelItem?.id)
+                        ?.yaw,
+                    Math.PI / 4,
+                );
+                assert.equal(
+                    world.placements.find((f) => f.itemId === modelItem?.id)
+                        ?.scanJobId,
+                    scan.id,
+                );
+                const bobImage = await db.imageAsset.create({
+                    data: {
+                        id: randomUUID(),
+                        ownerId: b.id,
+                        storageKey: randomUUID(),
+                        mediaType: "image/webp",
+                        width: 16,
+                        height: 16,
+                        size: 10,
+                    },
+                });
+                await clientOperation(request(b.cookie), "item", {
+                    ...body,
+                    id: modelItem.id,
+                    imageAssetId: bobImage.id,
+                    scanJobId: null,
+                    requestId: randomUUID(),
+                });
+                const changed = await snapshot();
+                assert.ok(BigInt(changed.revision) > BigInt(world.revision));
+                assert.equal(
+                    changed.placements.find((f) => f.itemId === modelItem?.id),
+                    undefined,
+                );
+                assert.equal(
+                    (await models.GET(modelRequest, context)).status,
+                    404,
+                );
+                // Images cannot be placed on tables; changing media clears placement.
+                await rejects(
+                    () =>
+                        serverOperation(serverRequest(), "place", {
+                            ...p,
+                            surfaceId: "lobby-table",
+                            x: 0,
+                            y: 0.9,
+                            z: 2.4,
+                            itemId: modelItem?.id,
+                            sessionId: b.sessionId,
+                            requestId: randomUUID(),
+                        }),
+                    422,
+                );
+                await serverOperation(serverRequest(), "place", {
+                    ...p,
+                    itemId: modelItem?.id,
+                    sessionId: b.sessionId,
+                    requestId: randomUUID(),
+                });
+                // Switching back to a model also removes its wall placement.
+                await clientOperation(request(b.cookie), "item", {
+                    ...body,
+                    id: modelItem.id,
+                    requestId: randomUUID(),
+                });
+                assert.equal(
+                    (await snapshot()).placements.find(
+                        (f) => f.itemId === modelItem?.id,
+                    ),
+                    undefined,
+                );
+                await db.imageAsset.delete({ where: { id: bobImage.id } });
+                await clientOperation(request(b.cookie, "DELETE"), "item", {
+                    id: modelItem.id,
+                    storeId: body.storeId,
+                    requestId: randomUUID(),
+                });
+                assert.equal(
+                    (await models.GET(modelRequest, context)).status,
+                    404,
+                );
+                assert.equal(
+                    (await scans.DELETE(deleteRequest, context)).status,
+                    204,
+                );
+            } finally {
+                if (modelItem)
+                    await db.item.deleteMany({ where: { id: modelItem.id } });
+                await db.scanJob.deleteMany({
+                    where: { id: { in: [scan.id, unfinished.id, foreign.id] } },
+                });
+                if (oldStorage === undefined)
+                    delete process.env.SCAN_STORAGE_DIR;
+                else process.env.SCAN_STORAGE_DIR = oldStorage;
+                await rm(storage, { recursive: true, force: true });
+            }
+        },
+    );
     await t.test("query-builder rate increments remain atomic", async () => {
         const { rate } = await import("@/lib/market/service");
         const key = `test:${randomUUID()}`;
@@ -859,4 +1202,28 @@ test("reject unsafe links and forged geometry", () => {
                 ...bad,
             }),
         );
+});
+
+test("table geometry rejects edge overhang and forged heights", () => {
+    const valid = {
+        worldId: "demo_store",
+        surfaceId: "lobby-table",
+        x: 0,
+        y: 0.9,
+        z: 2.4,
+        yaw: 0,
+    };
+    assert.deepEqual(placement(valid), { x: 0, y: 0.9, z: 2.4, yaw: 0 });
+    for (const invalid of [
+        { x: 1.6 },
+        { z: 1.9 },
+        { z: 2.9 },
+        { y: 1 },
+        { z: 2.45 },
+        { yaw: 7 },
+        { yaw: NaN },
+        { x: 1.5, yaw: Math.PI / 4 },
+        { z: 2.8, yaw: Math.PI / 4 },
+    ])
+        assert.throws(() => placement({ ...valid, ...invalid }));
 });

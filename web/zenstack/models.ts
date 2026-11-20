@@ -12,6 +12,7 @@ import type {
 
 import { type SchemaType as $Schema, schema as $schema } from "./schema";
 export type User = $ModelResult<$Schema, "User">;
+export type ApprovalCode = $ModelResult<$Schema, "ApprovalCode">;
 export type Session = $ModelResult<$Schema, "Session">;
 export type Account = $ModelResult<$Schema, "Account">;
 export type Verification = $ModelResult<$Schema, "Verification">;
@@ -25,6 +26,7 @@ export type MarketRequest = $ModelResult<$Schema, "MarketRequest">;
 export type MarketRate = $ModelResult<$Schema, "MarketRate">;
 export type WorldRevision = $ModelResult<$Schema, "WorldRevision">;
 export type ScanJob = $ModelResult<$Schema, "ScanJob">;
+export type ScanRunpodDispatch = $ModelResult<$Schema, "ScanRunpodDispatch">;
 export type MarketReceipt = $TypeDefResult<$Schema, "MarketReceipt">;
 export type MarketId = $TypeDefResult<$Schema, "MarketId">;
 export type MarketStore = $TypeDefResult<$Schema, "MarketStore">;

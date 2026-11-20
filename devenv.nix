@@ -14,6 +14,7 @@
     # Keep this as Godot 4 so its version matches game/project.godot.
     godot_4
     gdtoolkit_4
+    blender
     secretspec
     prisma-engines_6
     biome
@@ -129,7 +130,7 @@
   };
 
   scripts.worker-s = {
-    exec = "secretspec run -- python worker/run_worker.py $@";
+    exec = "secretspec run -- python run_worker.py $@";
     description = "Runs the 3D scan worker with secrets injected (run from the repo root)";
   };
 

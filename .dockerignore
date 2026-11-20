@@ -22,6 +22,10 @@ game/tests
 docs
 backups
 
+# The Ubuntu app images use only the web and game sources. Worker images have
+# their own Dockerfile-specific context allowlists.
+worker
+
 # Deployment data stays on the host.
 database
 storage

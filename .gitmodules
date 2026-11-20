@@ -1,0 +1,3 @@
+[submodule "worker/mast3r"]
+	path = worker/mast3r
+	url = https://github.com/naver/mast3r

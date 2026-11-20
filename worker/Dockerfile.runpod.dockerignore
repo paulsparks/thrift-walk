@@ -1,0 +1,11 @@
+**
+!worker/
+!worker/requirements-runpod.txt
+!worker/pipeline.py
+!worker/preview.py
+!worker/render_preview.py
+!worker/runpod_handler.py
+!worker/smoke_preview.py
+!worker/texture.py
+!worker/unwrap_texture.py
+!worker/smoke_texture.py

@@ -111,7 +111,9 @@ async function main() {
         requestId: crypto.randomUUID(),
     });
     assert.equal(item.status, 200, JSON.stringify(item.data));
-    const media = await fetch(`${origin}/api/media/${image.data.id}?thumb=1`);
+    const media = await fetch(`${origin}/api/media/${image.data.id}?thumb=1`, {
+        headers: { cookie },
+    });
     assert.equal(media.status, 200);
     assert.equal(media.headers.get("content-type"), "image/webp");
     const metadata = await sharp(

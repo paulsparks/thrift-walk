@@ -9,7 +9,8 @@ export function getSafeRedirect(value: string | string[] | null | undefined) {
 
     try {
         const url = new URL(value, BASE_URL);
-        if (url.origin !== BASE_URL) return "/";
+        if (url.pathname.startsWith("//") || url.origin !== BASE_URL)
+            return "/";
         return url.pathname + url.search + url.hash;
     } catch {
         return "/";

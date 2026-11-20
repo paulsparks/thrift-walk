@@ -28,9 +28,12 @@ export async function GET(
         return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
+    const preview = req.nextUrl.searchParams.get("preview") === "1";
     let file: Buffer;
     try {
-        file = await readFile(resolveScanPath(job.glbPath));
+        file = await readFile(
+            resolveScanPath(preview ? `${id}/preview.png` : job.glbPath),
+        );
     } catch {
         return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
@@ -39,8 +42,8 @@ export async function GET(
 
     return new Response(new Uint8Array(file), {
         headers: {
-            "Content-Type": "model/gltf-binary",
-            "Content-Disposition": `inline; filename="${filename}"`,
+            "Content-Type": preview ? "image/png" : "model/gltf-binary",
+            "Content-Disposition": `inline; filename="${preview ? "preview.png" : filename}"`,
             "Cache-Control": "private, max-age=0, must-revalidate",
         },
     });

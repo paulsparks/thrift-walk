@@ -17,19 +17,19 @@ const faqs = [
     },
     {
         question: "How many photos should I take per item?",
-        answer: "For a simple item like a shoe or a vase, 30-50 photos are ideal. For complex items like jackets or furniture, aim for 80-100 photos to capture all the folds and hidden details.",
+        answer: "Upload 3–10 photos of the same item. Move around it and include overlapping views of its sides and top.",
     },
     {
         question: "Why did my scan fail or look “melted”?",
         answer: "This usually happens due to poor lighting or reflective surfaces. Items that are pure black, transparent (glass), or very shiny (chrome) are difficult for photogrammetry. Try to use matte sprays or ensure soft, even lighting.",
     },
     {
-        question: "Can I scan my own clothes and wear them in-game?",
-        answer: "Yes! That’s one of the core features of ThriftWalk. Once your scan is processed, you can choose to list it on the marketplace or keep it in your “Digital Closet” to wear on your avatar.",
+        question: "How do I display a completed scan?",
+        answer: "Open My Stores, add or edit an item, and choose your completed 3D scan as its model. You can then place the model on a display table in the game.",
     },
     {
         question: "How long does the processing take?",
-        answer: "Standard scans typically take 15-30 minutes. HD scans with high-resolution textures can take up to 2 hours depending on the current server load.",
+        answer: "Processing time depends on worker availability and the photos. Check the scan upload page for queue status, progress, and the finished preview.",
     },
 ];
 

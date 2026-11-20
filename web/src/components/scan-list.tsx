@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import Image from "next/image";
 
 import {
     isScanActive,
@@ -108,19 +109,30 @@ export function ScanList() {
                                 className="card card-border flex-row items-center gap-5 border-base-content bg-base-100 p-5"
                             >
                                 <div className="grid size-16 shrink-0 place-items-center rounded-lg border-2 border-base-content bg-base-200">
-                                    <svg
-                                        className="size-8"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth={2}
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        aria-hidden="true"
-                                    >
-                                        <title>3D model</title>
-                                        <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3zM12 12l8-4.5M12 12v9M12 12L4 7.5" />
-                                    </svg>
+                                    {scan.status === "Completed" ? (
+                                        <Image
+                                            unoptimized
+                                            src={`/api/scan/${scan.id}/model?preview=1`}
+                                            alt={scan.name}
+                                            width={64}
+                                            height={64}
+                                            className="object-contain"
+                                        />
+                                    ) : (
+                                        <svg
+                                            className="size-8"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth={2}
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            aria-hidden="true"
+                                        >
+                                            <title>3D model</title>
+                                            <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3zM12 12l8-4.5M12 12v9M12 12L4 7.5" />
+                                        </svg>
+                                    )}
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <h3 className="truncate font-display text-lg font-extrabold">

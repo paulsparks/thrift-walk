@@ -1,0 +1,38 @@
+# Overlay on the main Compose file; enable only after endpoint deployment.
+services:
+  web:
+    environment:
+      SCAN_BACKEND: runpod
+      SCAN_STORAGE_DIR: /data/scans
+      SCAN_TRANSFER_SECRET: ${SCAN_TRANSFER_SECRET:?Set a dedicated random transfer secret}
+    volumes:
+      - type: bind
+        source: ${SCANS_DIR:-./storage/scans}
+        target: /data/scans
+        bind:
+          create_host_path: false
+
+  scan-dispatcher:
+    build:
+      context: ${THRIFT_SOURCE_DIR:-./thrift-walk}
+      dockerfile: worker/Dockerfile.dispatcher
+    image: thrift-walk-scan-dispatcher:local
+    init: true
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run deploy/configure.sh first}
+      RUNPOD_API_KEY: ${RUNPOD_API_KEY:?Set the endpoint API key}
+      RUNPOD_ENDPOINT_ID: ${RUNPOD_ENDPOINT_ID:?Set the approved endpoint id}
+      SCAN_APP_ORIGIN: ${SCAN_APP_ORIGIN:?Set the public HTTPS app origin}
+      SCAN_TRANSFER_SECRET: ${SCAN_TRANSFER_SECRET:?Set a dedicated random transfer secret}
+      SCAN_STORAGE_DIR: /data/scans
+    volumes:
+      - type: bind
+        source: ${SCANS_DIR:-./storage/scans}
+        target: /data/scans
+        bind:
+          create_host_path: false
+    networks: [database, edge]
+    depends_on:
+      web:
+        condition: service_healthy
